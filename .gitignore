@@ -1,0 +1,10 @@
+.DS_Store
+*~
+/emsdk_portable
+/icu
+/icu-llvm
+*.tgz
+/node_modules
+wrapper.js
+wrapper.js.mem
+wrapper.o
