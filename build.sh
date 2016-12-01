@@ -60,7 +60,7 @@ function build_icu_tools {
     # I'm being shady and telling users of the library to use char16_t, so there's an implicit raw cast
     ICU_CORE_CPP_FLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
     ICU_MODULE_CPP_FLAGS="${ICU_CORE_CPP_FLAGS} -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_BREAK_ITERATION=1"
-    
+
     CPPFLAGS="${CPPFLAGS} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
     #CXXFLAGS="--std=c++0x"
 
@@ -104,7 +104,7 @@ function build_icu_llvm {
     # I'm being shady and telling users of the library to use char16_t, so there's an implicit raw cast
     ICU_CORE_CPP_FLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
     ICU_MODULE_CPP_FLAGS="${ICU_CORE_CPP_FLAGS} -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_BREAK_ITERATION=1"
-    
+
     CPPFLAGS="${CPPFLAGS} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
     #CXXFLAGS="--std=c++0x"
 
@@ -137,9 +137,9 @@ function build_icu_llvm {
     popd
 }
 
-fetch_icu
-build_icu_tools
+#fetch_icu
+#build_icu_tools
 setup_emsdk # Overrides build chain to point to emscripten, no more building with original toolchain
-build_icu_llvm
-make clean
+#build_icu_llvm
+#make clean
 make all

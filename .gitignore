@@ -5,6 +5,4 @@
 /icu-llvm
 *.tgz
 /node_modules
-wrapper.js
-wrapper.js.mem
-wrapper.o
+/build
