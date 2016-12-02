@@ -1,6 +1,6 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include <unicode/ubidi.h>
 
@@ -22,7 +22,6 @@ uint32_t bidi_processText(const UChar* input, uint32_t input_length) {
 
     return ubidi_countParagraphs(bidiText);
 }
-
 
 uint32_t bidi_getParagraphEndIndex(uint32_t paragraphIndex) {
     UErrorCode errorCode = U_ZERO_ERROR;
@@ -60,14 +59,13 @@ UChar* bidi_getLine(uint32_t start, uint32_t end) {
     // UBIDI_REMOVE_BIDI_CONTROLS: Now that all the lines are set, remove control characters so that
     // they don't show up on screen (some fonts have glyphs representing them)
     // UBIDI_DO_MIRRORING | UBIDI_REMOVE_BIDI_CONTROLS
-    ubidi_writeReordered(bidiLine, output, outputLength,
-                         0, &errorCode);
+    ubidi_writeReordered(bidiLine, output, outputLength, 0, &errorCode);
 
     if (U_FAILURE(errorCode)) {
         printf("ubidi_writeReordered Error code: %u\n", errorCode);
         return 0;
     }
 
-    output[outputLength-1] = 0;
+    output[outputLength - 1] = 0;
     return output;
 }
