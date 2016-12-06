@@ -25,9 +25,12 @@ build/ubidi_wrapper.o: src/ubidi_wrapper.c
 	mkdir -p build
 	${EMSCRIPTEN}/emcc -O3 -c src/ubidi_wrapper.c -I./icu-llvm/source/common -o build/ubidi_wrapper.o
 
-index.js: build/wrapper.js src/icu.js src/module-prefix.js src/module-postfix.js
+build/icu.js: src/icu.js
+	node_modules/buble/bin/buble src/icu.js -y dangerousForOf > build/icu.js
+
+index.js: build/wrapper.js build/icu.js src/module-prefix.js
 	echo "(function(){" > index.js
-	cat src/module-prefix.js build/wrapper.js src/icu.js src/module-postfix.js >> index.js
+	cat src/module-prefix.js build/wrapper.js src/icu.js >> index.js
 	echo "})();" >> index.js
 
 clean:

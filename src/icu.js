@@ -27,7 +27,8 @@ function mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount) {
         // TODO: Handle error?
 
         for (const lineBreakPoint of lineBreakPoints) {
-            if (lineBreakPoint < paragraphEndIndex && lineBreakPoint > mergedParagraphLineBreakPoints[mergedParagraphLineBreakPoints.length - 1])
+            if (lineBreakPoint < paragraphEndIndex &&
+                (!mergedParagraphLineBreakPoints[mergedParagraphLineBreakPoints.length - 1] || lineBreakPoint > mergedParagraphLineBreakPoints[mergedParagraphLineBreakPoints.length - 1]))
                 mergedParagraphLineBreakPoints.push(lineBreakPoint);
         }
         mergedParagraphLineBreakPoints.push(paragraphEndIndex);
@@ -61,7 +62,7 @@ function processBidirectionalText(input, lineBreakPoints) {
     let startIndex = 0;
     const lines = [];
 
-    for (const lineBreakPoint of lineBreakPoints) {
+    for (const lineBreakPoint of mergedParagraphLineBreakPoints) {
         const returnStringPtr = Module.ccall('bidi_getLine', 'number', ['number', 'number'], [startIndex, lineBreakPoint]);
 
         if (returnStringPtr === 0) {

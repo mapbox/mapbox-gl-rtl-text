@@ -4,19 +4,17 @@
   "description": "Emscripten port of ICU functionality needed for mapbox-gl-js.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "rebuild": "./build.sh"
   },
   "author": "Mapbox",
   "license": "ISC",
   "repository": {
-      "type": "git",
-      "url": "git://github.com/mapbox/mapbox-icu-js.git"
-  },
-  "scripts": {
-      "rebuild": "./build.sh"
+    "type": "git",
+    "url": "git://github.com/mapbox/mapbox-icu-js.git"
   },
   "devDependencies": {
     "babel-eslint": "^7.0.0",
+    "buble": "^0.14.2",
     "eslint": "^3.9.0",
     "eslint-config-mourner": "^2.0.0",
     "eslint-plugin-flowtype": "^2.20.0",

@@ -128,7 +128,6 @@ function build_icu_llvm {
     --disable-samples \
     --disable-dyload || cat config.log
 
-
     # Must do make clean after configure to clear out object files left over from previous build on different architecture
     emmake make clean
     emmake make -j4
@@ -137,9 +136,9 @@ function build_icu_llvm {
     popd
 }
 
-#fetch_icu
-#build_icu_tools
+fetch_icu
+build_icu_tools
 setup_emsdk # Overrides build chain to point to emscripten, no more building with original toolchain
-#build_icu_llvm
-#make clean
+build_icu_llvm
+make clean
 make all
