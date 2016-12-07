@@ -95,8 +95,8 @@ function build_icu_llvm {
 	# I haven't figured out why, but emconfigure doesn't seem to pass CFLAGS through to configure so the configure script
 	# makes its own which conflicts with our settings.
 	# I tried using EMCC_CFLAGS and EMMAKEN_CFLAGS to pass the CFLAGS in, but those didn't get picked up either
-	sed -i '.bak' 's/CFLAGS="$CFLAGS -O2/CFLAGS="$CFLAGS -O3/g' ${ICU_LLVM_ROOT}/configure
-	sed -i '.bak' 's/CXXFLAGS="$CXXFLAGS -O2/CXXFLAGS="$CXXFLAGS -O3/g' ${ICU_LLVM_ROOT}/configure
+	sed -i '.bak' 's/CFLAGS="$CFLAGS -O2/CFLAGS="$CFLAGS -Oz/g' ${ICU_LLVM_ROOT}/configure
+	sed -i '.bak' 's/CXXFLAGS="$CXXFLAGS -O2/CXXFLAGS="$CXXFLAGS -Oz/g' ${ICU_LLVM_ROOT}/configure
 
     # Using uint_least16_t instead of char16_t because Android Clang doesn't recognize char16_t
     # I'm being shady and telling users of the library to use char16_t, so there's an implicit raw cast
