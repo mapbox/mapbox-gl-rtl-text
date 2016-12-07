@@ -37,14 +37,6 @@ ICU_TOOLS_ROOT=`pwd`/icu/source
 ICU_LLVM_ROOT=`pwd`/icu-llvm/source
 export HOST_ARG="--host=x86_64-apple-darwin"
 
-#SDK_VERSION=`xcrun --sdk macosx --show-sdk-version`
-#SDK_ROOT=${XCODE_ROOT}/Platforms/MacOSX.platform/Developer
-#SDK_PATH="${SDK_ROOT}/SDKs/MacOSX${SDK_VERSION}.sdk"
-
-#MIN_SDK_VERSION_FLAG="-mmacosx-version-min=10.8"
-#SYSROOT_FLAGS="-isysroot ${SDK_PATH} -arch x86_64 ${MIN_SDK_VERSION_FLAG}"
-#export CFLAGS="${SYSROOT_FLAGS}"
-export EMCC_CFLAGS="-O3"
 export CXXFLAGS="${CFLAGS} -fvisibility-inlines-hidden -stdlib=libc++ -std=c++11"
 # NOTE: OSX needs '-stdlib=libc++ -std=c++11' in both CXXFLAGS and LDFLAGS
 # to correctly target c++11 for build systems that don't know about it yet (like libgeos 3.4.2)
@@ -100,13 +92,18 @@ function build_icu_llvm {
 	# llvm-ar doesn't recognize the "-c" flag ICU tries to pass in, but it's not necessary (just for suppressing output)
 	sed -i '.bak' 's/ARFLAGS += -c/#ARFLAGS += -c"/g' ${ICU_LLVM_ROOT}/config/mh-darwin
 
+	# I haven't figured out why, but emconfigure doesn't seem to pass CFLAGS through to configure so the configure script
+	# makes its own which conflicts with our settings.
+	# I tried using EMCC_CFLAGS and EMMAKEN_CFLAGS to pass the CFLAGS in, but those didn't get picked up either
+	sed -i '.bak' 's/CFLAGS="$CFLAGS -O2/CFLAGS="$CFLAGS -O3/g' ${ICU_LLVM_ROOT}/configure
+	sed -i '.bak' 's/CXXFLAGS="$CXXFLAGS -O2/CXXFLAGS="$CXXFLAGS -O3/g' ${ICU_LLVM_ROOT}/configure
+
     # Using uint_least16_t instead of char16_t because Android Clang doesn't recognize char16_t
     # I'm being shady and telling users of the library to use char16_t, so there's an implicit raw cast
     ICU_CORE_CPP_FLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
     ICU_MODULE_CPP_FLAGS="${ICU_CORE_CPP_FLAGS} -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_BREAK_ITERATION=1"
 
-    CPPFLAGS="${CPPFLAGS} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
-    #CXXFLAGS="--std=c++0x"
+    export CPPFLAGS="${CPPFLAGS} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
 
     emconfigure ./configure ${HOST_ARG} --prefix=${BUILD_PREFIX} \
     --with-cross-build=${ICU_TOOLS_ROOT} \
