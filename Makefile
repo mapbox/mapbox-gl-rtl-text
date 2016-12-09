@@ -11,12 +11,17 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	    -s NO_FILESYSTEM="1" \
 	    -s NO_BROWSER="1" \
 	    -s INLINING_LIMIT="1" \
+		-s ALLOW_MEMORY_GROWTH="1" \
 	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall']" \
 	    --llvm-lto 3 \
 		--memory-init-file 0
 
 # Using --memory-init-file 1 speeds up parsing, but requires asynchronously fetching the data. Also requires -s NO_BROWSER="0"
-#--closure 1 \ # Using Closure compiler might shave off a little more space, but we'll be minified downstream anyway
+#--closure 1 \ # Using Closure compiler might be able to prevent non-exported functions from being included at all
+
+# Build byte code instead of javascript, and then run it in an interpreter to avoid slow load time
+# -s EMTERPRETIFY="1" \
+# -s 'EMTERPRETIFY_FILE="data.binary"' \
 
 # Even though we're building with -Oz which defaults the EMCC "ASSERTIONS" flag to 0, the emscripten runtime still includes some assertions
 # that need stripping
