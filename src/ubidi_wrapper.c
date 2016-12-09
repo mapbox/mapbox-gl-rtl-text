@@ -58,8 +58,7 @@ UChar* bidi_getLine(uint32_t start, uint32_t end) {
     // UBIDI_DO_MIRRORING: Apply unicode mirroring of characters like parentheses
     // UBIDI_REMOVE_BIDI_CONTROLS: Now that all the lines are set, remove control characters so that
     // they don't show up on screen (some fonts have glyphs representing them)
-    // UBIDI_DO_MIRRORING | UBIDI_REMOVE_BIDI_CONTROLS
-    ubidi_writeReordered(bidiLine, output, outputLength, 0, &errorCode);
+    ubidi_writeReordered(bidiLine, output, outputLength, UBIDI_DO_MIRRORING | UBIDI_REMOVE_BIDI_CONTROLS, &errorCode);
 
     if (U_FAILURE(errorCode)) {
         printf("ubidi_writeReordered Error code: %u\n", errorCode);

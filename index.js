@@ -74281,7 +74281,7 @@ var asm = function (global, env, buffer) {
                 b = gb(d) | 0;
                 d = b + 1 | 0;
                 c = Fc(d << 1) | 0;
-                vb(k[25] | 0, c, d, 0, f) | 0;
+                vb(k[25] | 0, c, d, 10, f) | 0;
                 d = k[f >> 2] | 0;
                 if ((d | 0) > 0) {
                     k[g >> 2] = d;
