@@ -12,9 +12,10 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	    -s NO_BROWSER="1" \
 	    -s INLINING_LIMIT="1" \
 		-s ALLOW_MEMORY_GROWTH="1" \
-	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall']" \
+	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall','_malloc','_free']" \
 	    --llvm-lto 3 \
-		--memory-init-file 0
+		--memory-init-file 0 \
+		--closure 1
 
 # Using --memory-init-file 1 speeds up parsing, but requires asynchronously fetching the data. Also requires -s NO_BROWSER="0"
 #--closure 1 \ # Using Closure compiler might be able to prevent non-exported functions from being included at all

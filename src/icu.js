@@ -6,14 +6,14 @@ function applyArabicShaping(input) {
 
     const nDataBytes = (input.length + 1) * 2;
     const stringInputPtr = Module._malloc(nDataBytes);
-    stringToUTF16(input, stringInputPtr, nDataBytes);
+    Module.stringToUTF16(input, stringInputPtr, nDataBytes);
     const returnStringPtr = Module.ccall('ushape_arabic', 'number', ['number', 'number'], [stringInputPtr, input.length]);
     Module._free(stringInputPtr);
 
     if (returnStringPtr === 0)
         return input;
 
-    const result = UTF16ToString(returnStringPtr);
+    const result = Module.UTF16ToString(returnStringPtr);
     Module._free(returnStringPtr);
 
     return result;
@@ -49,7 +49,7 @@ function processBidirectionalText(input, lineBreakPoints) {
 
     const nDataBytes = (input.length + 1) * 2;
     const stringInputPtr = Module._malloc(nDataBytes);
-    stringToUTF16(input, stringInputPtr, nDataBytes);
+    Module.stringToUTF16(input, stringInputPtr, nDataBytes);
     const paragraphCount = Module.ccall('bidi_processText', 'number', ['number', 'number'], [stringInputPtr, input.length]);
 
     if (paragraphCount === 0) {
@@ -70,7 +70,7 @@ function processBidirectionalText(input, lineBreakPoints) {
             return []; // TODO: throw exception?
         }
 
-        lines.push(UTF16ToString(returnStringPtr));
+        lines.push(Module.UTF16ToString(returnStringPtr));
         Module._free(returnStringPtr);
 
         startIndex = lineBreakPoint;
