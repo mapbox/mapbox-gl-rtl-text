@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -16,7 +15,7 @@ uint32_t bidi_processText(const UChar* input, uint32_t input_length) {
     ubidi_setPara(bidiText, input, input_length, UBIDI_DEFAULT_LTR, NULL, &errorCode);
 
     if (U_FAILURE(errorCode)) {
-        printf("ubidi_setPara Error code: %u\n", errorCode);
+        //printf("ubidi_setPara Error code: %u\n", errorCode);
         return 0;
     }
 
@@ -29,7 +28,7 @@ uint32_t bidi_getParagraphEndIndex(uint32_t paragraphIndex) {
     ubidi_getParagraphByIndex(bidiText, paragraphIndex, NULL, &paragraphEndIndex, NULL, &errorCode);
 
     if (U_FAILURE(errorCode)) {
-        printf("ubidi_getParagraphByIndex Error code: %u\n", errorCode);
+        //printf("ubidi_getParagraphByIndex Error code: %u\n", errorCode);
         return 0;
     }
 
@@ -45,7 +44,7 @@ UChar* bidi_getLine(uint32_t start, uint32_t end) {
     ubidi_setLine(bidiText, start, end, bidiLine, &errorCode);
 
     if (U_FAILURE(errorCode)) {
-        printf("ubidi_setLine Error code: %u\n", errorCode);
+        //printf("ubidi_setLine Error code: %u\n", errorCode);
         return 0;
     }
 
@@ -61,7 +60,7 @@ UChar* bidi_getLine(uint32_t start, uint32_t end) {
     ubidi_writeReordered(bidiLine, output, outputLength, UBIDI_DO_MIRRORING | UBIDI_REMOVE_BIDI_CONTROLS, &errorCode);
 
     if (U_FAILURE(errorCode)) {
-        printf("ubidi_writeReordered Error code: %u\n", errorCode);
+        //printf("ubidi_writeReordered Error code: %u\n", errorCode);
         return 0;
     }
 

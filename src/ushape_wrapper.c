@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,7 +24,7 @@ UChar* ushape_arabic(const UChar* input, uint32_t input_length) {
                   &errorCode);
 
     if (U_FAILURE(errorCode)) {
-        printf("ushape_arabic Error code: %u\n", errorCode);
+        //printf("ushape_arabic Error code: %u\n", errorCode);
         free(output);
         return 0;
     }
