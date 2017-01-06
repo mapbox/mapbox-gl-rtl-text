@@ -80,6 +80,3 @@ function processBidirectionalText(input, lineBreakPoints) {
 
     return lines;
 }
-
-module.exports.applyArabicShaping = applyArabicShaping;
-module.exports.processBidirectionalText = processBidirectionalText;

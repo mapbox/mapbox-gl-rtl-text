@@ -80613,6 +80613,5 @@ function processBidirectionalText(input, lineBreakPoints) {
     return lines;
 }
 
-module.exports.applyArabicShaping = applyArabicShaping;
-module.exports.processBidirectionalText = processBidirectionalText;
+self.registerWorkerPlugin('mapbox-icu-js', {'applyArabicShaping': applyArabicShaping, 'processBidirectionalText': processBidirectionalText});
 })();

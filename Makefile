@@ -1,6 +1,6 @@
 CPPFLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
 
-all: index.js
+all: index.js mapbox-icu.js mapbox-icu.js.min
 
 build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	mkdir -p build
@@ -44,10 +44,18 @@ build/icu.js: src/icu.js
 index.js.min: index.js
 	node_modules/uglifyjs/bin/uglifyjs index.js > index.js.min
 
-index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js
+index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/module-postfix.js
 	echo "(function(){" > index.js
-	cat src/module-prefix.js build/wrapper_unassert.js build/icu.js >> index.js
+	cat src/module-prefix.js build/wrapper_unassert.js build/icu.js src/module-postfix.js >> index.js
 	echo "})();" >> index.js
+
+mapbox-icu.js.min: mapbox-icu.js
+	node_modules/uglifyjs/bin/uglifyjs mapbox-icu.js > mapbox-icu.js.min
+
+mapbox-icu.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/plugin-postfix.js
+		echo "(function(){" > mapbox-icu.js
+		cat src/module-prefix.js build/wrapper_unassert.js build/icu.js src/plugin-postfix.js >> mapbox-icu.js
+		echo "})();" >> mapbox-icu.js
 
 clean:
 	rm -rf build
