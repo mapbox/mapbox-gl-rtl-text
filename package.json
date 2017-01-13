@@ -7,7 +7,7 @@
     "rebuild": "./build.sh"
   },
   "author": "Mapbox",
-  "license": "ISC",
+  "license": "BSD",
   "repository": {
     "type": "git",
     "url": "git://github.com/mapbox/mapbox-icu-js.git"
