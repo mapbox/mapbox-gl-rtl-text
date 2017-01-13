@@ -37,4 +37,6 @@ Running `build.sh` will:
 	- Generate `wrapper.js`, exposing bytecode sources as Javascript
 	- Embed `wrapper.js` in `index.js` for use with Browserify, and `mapbox-icu.js` for loading directly as a GL JS plugin
 
-Only tested on MacOS 10.12.
+Build process only tested on MacOS 10.12.
+
+Running `npm test` will run unit tests in `test/*.test.js`. Use `npm test -- --cov` to generate code coverage stats.
