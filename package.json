@@ -20,6 +20,10 @@
     "eslint-plugin-flowtype": "^2.20.0",
     "eslint-plugin-html": "^1.5.1",
     "uglifyjs": "^2.4.10",
-    "unassert-cli": "^0.1.0"
-  }
+    "unassert-cli": "^0.1.0",
+    "tap": "^5.7.0"
+},
+"scripts": {
+   "test": "tap test/*.js"
+ }
 }

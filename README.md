@@ -16,9 +16,9 @@ Takes an input string with characters in "logical order", along with a set of ch
 
     setComplexTextPlugin('mapbox-icu.js');
 
- You can use ICU JS directly as a Browserify bundle:
+ You can use ICU JS directly:
 
-    var icu = require('mapbox-icu-js);
+    var icu = require('mapbox-icu-js');
     var arabicString = "سلام";
     var shapedArabicText = icu.applyArabicShaping(arabicString);
     var readyForDisplay = icu.processBidirectionalText(shapedArabicText, []);
