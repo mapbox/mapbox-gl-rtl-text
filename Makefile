@@ -1,6 +1,6 @@
 CPPFLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
 
-all: index.js mapbox-icu.js mapbox-icu.js.min
+all: index.js mapbox-gl-rtl-text.js mapbox-gl-rtl-text.js.min
 
 build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	mkdir -p build
@@ -49,13 +49,13 @@ index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/module
 	cat src/module-prefix.js build/wrapper_unassert.js build/icu.js src/module-postfix.js >> index.js
 	echo "})();" >> index.js
 
-mapbox-icu.js.min: mapbox-icu.js
-	node_modules/uglifyjs/bin/uglifyjs mapbox-icu.js > mapbox-icu.js.min
+mapbox-gl-rtl-text.js.min: mapbox-gl-rtl-text.js
+	node_modules/uglifyjs/bin/uglifyjs mapbox-gl-rtl-text.js > mapbox-gl-rtl-text.js.min
 
-mapbox-icu.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/plugin-postfix.js
-		echo "(function(){" > mapbox-icu.js
-		cat src/module-prefix.js build/wrapper_unassert.js build/icu.js src/plugin-postfix.js >> mapbox-icu.js
-		echo "})();" >> mapbox-icu.js
+mapbox-gl-rtl-text.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/plugin-postfix.js
+		echo "(function(){" > mapbox-gl-rtl-text.js
+		cat src/module-prefix.js build/wrapper_unassert.js build/icu.js src/plugin-postfix.js >> mapbox-gl-rtl-text.js
+		echo "})();" >> mapbox-gl-rtl-text.js
 
 clean:
 	rm -rf build
