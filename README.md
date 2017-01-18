@@ -16,7 +16,7 @@ Takes an input string with characters in "logical order", along with a set of ch
 
 `mapbox-gl-rtl-text.js`/`mapbox-gl-rtl-text.js.min` are built to be loaded directly by Mapbox GL JS using:
 
-    setComplexTextPlugin('mapbox-gl-rtl-text.js');
+    setRTLTextPlugin('mapbox-gl-rtl-text.js');
 
  You can use ICU JS directly:
 
