@@ -80613,5 +80613,5 @@ function processBidirectionalText(input, lineBreakPoints) {
     return lines;
 }
 
-self.registerComplexTextPlugin({'applyArabicShaping': applyArabicShaping, 'processBidirectionalText': processBidirectionalText});
+self.registerRTLTextPlugin({'applyArabicShaping': applyArabicShaping, 'processBidirectionalText': processBidirectionalText});
 })();
