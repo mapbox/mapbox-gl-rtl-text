@@ -1,5 +1,5 @@
 {
-  "name": "mapbox-gl-rtl-text",
+  "name": "@mapbox/mapbox-gl-rtl-text",
   "version": "0.1.0",
   "description": "Add support for RTL languages to mapbox-gl-js.",
   "main": "index.js",
