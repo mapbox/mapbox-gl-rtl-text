@@ -24,6 +24,18 @@ tap.same(
     ["۳۹ﻡﻼﺳ"]
 );
 
+tap.equal(
+    icu.applyArabicShaping("مكتبة الإسكندرية‎‎ Maktabat al-Iskandarīyah"),
+    "ﻣﻜﺘﺒﺔ ﺍﻹﺳﻜﻨﺪﺭﻳﺔ‎‎ Maktabat al-Iskandarīyah"
+);
+
+tap.same(
+    icu.processBidirectionalText(
+        icu.applyArabicShaping("مكتبة الإسكندرية‎‎ Maktabat al-Iskandarīyah"),
+        []),
+    [" Maktabat al-Iskandarīyahﺔﻳﺭﺪﻨﻜﺳﻹﺍ ﺔﺒﺘﻜﻣ"]
+);
+
 // Line breaking with bidirectional text
 tap.same(
     icu.processBidirectionalText(
