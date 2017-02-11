@@ -1,29 +1,26 @@
 {
-  "name": "@mapbox/mapbox-gl-rtl-text",
-  "version": "0.1.0",
-  "description": "Add support for RTL languages to mapbox-gl-js.",
-  "main": "index.js",
-  "scripts": {
-    "rebuild": "./build.sh"
-  },
-  "author": "Mapbox",
-  "license": "BSD",
+  "name": "@mapbox/mapbox-gl-rtl-text", 
+  "license": "BSD-2-Clause", 
+  "author": "Mapbox", 
   "repository": {
-    "type": "git",
-    "url": "git://github.com/mapbox/mapbox-gl-rtl-text.git"
-  },
+    "url": "git://github.com/mapbox/mapbox-gl-rtl-text.git", 
+    "type": "git"
+  }, 
+  "version": "0.1.0", 
+  "scripts": {
+    "test": "tap test/*.js"
+  }, 
   "devDependencies": {
-    "babel-eslint": "^7.0.0",
-    "buble": "^0.14.2",
-    "eslint": "^3.9.0",
-    "eslint-config-mourner": "^2.0.0",
-    "eslint-plugin-flowtype": "^2.20.0",
-    "eslint-plugin-html": "^1.5.1",
-    "uglifyjs": "^2.4.10",
-    "unassert-cli": "^0.1.0",
-    "tap": "^5.7.0"
-},
-"scripts": {
-   "test": "tap test/*.js"
- }
+    "eslint-config-mourner": "^2.0.0", 
+    "eslint-plugin-flowtype": "^2.20.0", 
+    "tap": "^5.7.0", 
+    "babel-eslint": "^7.0.0", 
+    "eslint-plugin-html": "^1.5.1", 
+    "unassert-cli": "^0.1.0", 
+    "eslint": "^3.9.0", 
+    "buble": "^0.14.2", 
+    "uglifyjs": "^2.4.10"
+  }, 
+  "main": "index.js", 
+  "description": "Add support for RTL languages to mapbox-gl-js."
 }
