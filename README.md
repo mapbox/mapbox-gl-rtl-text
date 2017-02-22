@@ -41,3 +41,11 @@ Running `build.sh` will:
 Build process only tested on MacOS 10.12.
 
 Running `npm test` will run unit tests in `test/*.test.js`. Use `npm test -- --cov` to generate code coverage stats.
+
+## Deploying mapbox-gl-rtl-text
+
+ - `./build.sh`
+ - `npm test`
+ - `npm version {patch|minor|major}`
+ - `git push --follow-tags`
+ - `aws s3 cp --acl public-read mapbox-gl-rtl-text.js.min s3://mapbox-gl-js/plugins/mapbox-gl-rtl-text/v$(node --print --eval "require('./package.json').version")/mapbox-gl-rtl-text.js`
