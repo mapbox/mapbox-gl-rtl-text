@@ -48,4 +48,4 @@ Running `npm test` will run unit tests in `test/*.test.js`. Use `npm test -- --c
  - `npm test`
  - `npm version {patch|minor|major}`
  - `git push --follow-tags`
- - `aws s3 cp --acl public-read mapbox-gl-rtl-text.js.min s3://mapbox-gl-js/plugins/mapbox-gl-rtl-text/$(node --print --eval "require('./package.json').version")/mapbox-gl-rtl-text.js`
+ - `aws s3 cp --acl public-read mapbox-gl-rtl-text.js.min s3://mapbox-gl-js/plugins/mapbox-gl-rtl-text/v$(node --print --eval "require('./package.json').version")/mapbox-gl-rtl-text.js`
