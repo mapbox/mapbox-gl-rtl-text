@@ -7,7 +7,7 @@ function download_and_extract {
 	if [ -f "$2" ] ; then
 		return
 	fi
-	curl "$1" -o "$2"
+	curl -sSfL "$1" -o "$2"
 	HASH=`git hash-object $2`
     if [ "$3" != "${HASH}" ] ; then
         echo "Hash ${HASH} of $2 doesn't match $3"
@@ -40,7 +40,7 @@ ICU_TOOLS_ROOT=`pwd`/icu/source
 ICU_LLVM_ROOT=`pwd`/icu-llvm/source
 export HOST_ARG="--host=x86_64-apple-darwin"
 
-export CXXFLAGS="${CFLAGS} -fvisibility-inlines-hidden -stdlib=libc++ -std=c++11"
+export CXXFLAGS="${CFLAGS:-} -fvisibility-inlines-hidden -stdlib=libc++ -std=c++11"
 # NOTE: OSX needs '-stdlib=libc++ -std=c++11' in both CXXFLAGS and LDFLAGS
 # to correctly target c++11 for build systems that don't know about it yet (like libgeos 3.4.2)
 # But because LDFLAGS is also for C libs we can only put these flags into LDFLAGS per package
@@ -56,7 +56,7 @@ function build_icu_tools {
     ICU_CORE_CPP_FLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
     ICU_MODULE_CPP_FLAGS="${ICU_CORE_CPP_FLAGS} -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_BREAK_ITERATION=1"
 
-    CPPFLAGS="${CPPFLAGS} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
+    CPPFLAGS="${CPPFLAGS:-} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
     #CXXFLAGS="--std=c++0x"
 
     ./configure ${HOST_ARG} --prefix=${BUILD_PREFIX} \
