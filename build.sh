@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+set -eu
+set -o pipefail
+
 function download_and_extract {
 	if [ -f "$2" ] ; then
 		return
