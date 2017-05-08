@@ -10,10 +10,10 @@ os: osx
 osx_image: xcode8.3
 
 before_install:
-  ./build.sh
+  - npm install
 
 install:
-  npm install
+  - ./build.sh
 
 script:
-  npm test
+  - npm test
