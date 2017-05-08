@@ -22,10 +22,10 @@ function setup_emsdk {
         emsdk-portable.tgz \
         defd941a3dd65a5390a6fc324a9b8b9a1550c312
 
-	emsdk_portable/emsdk update
-	emsdk_portable/emsdk install latest
-	emsdk_portable/emsdk activate latest
-	source emsdk_portable/emsdk_env.sh
+	emsdk-portable/emsdk update
+	emsdk-portable/emsdk install latest
+	emsdk-portable/emsdk activate latest
+	source emsdk-portable/emsdk_env.sh
 }
 
 function fetch_icu {
