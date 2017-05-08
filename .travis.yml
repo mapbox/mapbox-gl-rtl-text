@@ -4,6 +4,11 @@ node_js:
 - '4'
 - '6'
 
+## the build.sh currently has only been tested on osx
+## TODO: make cross-platform ideally
+os: osx
+osx_image: xcode8.3
+
 before_install:
   ./build.sh
 
