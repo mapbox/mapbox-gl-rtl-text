@@ -20,7 +20,7 @@ function setup_emsdk {
 	download_and_extract \
         https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz \
         emsdk-portable.tgz \
-        a9c0b2cfdbbf21d9353754218233d2e7761e8627
+        defd941a3dd65a5390a6fc324a9b8b9a1550c312
 
 	emsdk_portable/emsdk update
 	emsdk_portable/emsdk install latest
