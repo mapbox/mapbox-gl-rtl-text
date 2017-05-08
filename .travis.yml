@@ -1,4 +1,14 @@
 language: node_js
+
 node_js:
 - '4'
 - '6'
+
+before_install:
+  ./build.sh
+
+install:
+  npm install
+
+script:
+  npm test
