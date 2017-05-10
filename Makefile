@@ -1,5 +1,13 @@
 CPPFLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+   IN_PLACE = "-ibak"
+endif
+ifeq ($(UNAME_S),Darwin)
+   IN_PLACE = "-i '.bak'"
+endif
+
 all: index.js mapbox-gl-rtl-text.js mapbox-gl-rtl-text.js.min
 
 build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
@@ -28,7 +36,7 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 # that need stripping
 build/wrapper_unassert.js: build/wrapper.js
 	node_modules/unassert-cli/bin/cmd.js build/wrapper.js > build/wrapper_unassert.js
-	sed -i '.bak' 's/assert/assert_em/g' build/wrapper_unassert.js
+	sed ${IN_PLACE} 's/assert/assert_em/g' build/wrapper_unassert.js
 
 build/ushape_wrapper.o: src/ushape_wrapper.c
 	mkdir -p build

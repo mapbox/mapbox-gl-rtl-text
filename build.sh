@@ -38,9 +38,23 @@ function fetch_icu {
 
 ICU_TOOLS_ROOT=`pwd`/icu/source
 ICU_LLVM_ROOT=`pwd`/icu-llvm/source
-export HOST_ARG="--host=x86_64-apple-darwin"
 
-export CXXFLAGS="${CFLAGS:-} -fvisibility-inlines-hidden -stdlib=libc++ -std=c++11"
+
+UNAME=`uname -s`
+if [ ${UNAME} = 'Darwin' ]; then
+    export HOST_ARG="--host=x86_64-apple-darwin"
+    CONFIG_NAME="mh-darwin"
+    IN_PLACE="-i 'bak'";
+	STDLIB="-stdlib=libc++";
+elif [ ${UNAME} = 'Linux' ]; then
+    export HOST_ARG="--host=x86_64-unknown-linux-gnu"
+    CONFIG_NAME="mh-linux"
+    IN_PLACE="-ibak";
+	STDLIB="";
+fi
+
+
+export CXXFLAGS="${CFLAGS:-} -fvisibility-inlines-hidden ${STDLIB} -std=c++11"
 # NOTE: OSX needs '-stdlib=libc++ -std=c++11' in both CXXFLAGS and LDFLAGS
 # to correctly target c++11 for build systems that don't know about it yet (like libgeos 3.4.2)
 # But because LDFLAGS is also for C libs we can only put these flags into LDFLAGS per package
@@ -54,10 +68,9 @@ function build_icu_tools {
 	# Using uint_least16_t instead of char16_t because Android Clang doesn't recognize char16_t
     # I'm being shady and telling users of the library to use char16_t, so there's an implicit raw cast
     ICU_CORE_CPP_FLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
-    ICU_MODULE_CPP_FLAGS="${ICU_CORE_CPP_FLAGS} -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_BREAK_ITERATION=1"
+    ICU_MODULE_CPP_FLAGS="${ICU_CORE_CPP_FLAGS} -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_BREAK_ITERATION=1 -DUCONFIG_NO_FORMATTING=1"
 
-    CPPFLAGS="${CPPFLAGS:-} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
-    #CXXFLAGS="--std=c++0x"
+    export CPPFLAGS="${CPPFLAGS:-} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
 
     ./configure ${HOST_ARG} --prefix=${BUILD_PREFIX} \
     --enable-tools \
@@ -88,25 +101,25 @@ function build_icu_tools {
 }
 
 function build_icu_llvm {
-	BUILD_PREFIX="${ICU_LLVM_ROOT}/.build"
+    BUILD_PREFIX="${ICU_LLVM_ROOT}/.build"
     echo "Building LLVM ICU with ${HOST_ARG} in ${BUILD_PREFIX}"
 	pushd ${ICU_LLVM_ROOT}
 
-	# llvm-ar doesn't recognize the "-c" flag ICU tries to pass in, but it's not necessary (just for suppressing output)
-	sed -i '.bak' 's/ARFLAGS += -c/#ARFLAGS += -c"/g' ${ICU_LLVM_ROOT}/config/mh-darwin
+    # llvm-ar doesn't recognize the "-c" flag ICU tries to pass in, but it's not necessary (just for suppressing output)
+    sed ${IN_PLACE} 's/ARFLAGS += -c/#ARFLAGS += -c"/g' ${ICU_LLVM_ROOT}/config/${CONFIG_NAME}
 
-	# I haven't figured out why, but emconfigure doesn't seem to pass CFLAGS through to configure so the configure script
-	# makes its own which conflicts with our settings.
-	# I tried using EMCC_CFLAGS and EMMAKEN_CFLAGS to pass the CFLAGS in, but those didn't get picked up either
-	sed -i '.bak' 's/CFLAGS="$CFLAGS -O2/CFLAGS="$CFLAGS -Oz/g' ${ICU_LLVM_ROOT}/configure
-	sed -i '.bak' 's/CXXFLAGS="$CXXFLAGS -O2/CXXFLAGS="$CXXFLAGS -Oz/g' ${ICU_LLVM_ROOT}/configure
+    # I haven't figured out why, but emconfigure doesn't seem to pass CFLAGS through to configure so the configure script
+    # makes its own which conflicts with our settings.
+    # I tried using EMCC_CFLAGS and EMMAKEN_CFLAGS to pass the CFLAGS in, but those didn't get picked up either
+	sed ${IN_PLACE} 's/CFLAGS="$CFLAGS -O2/CFLAGS="$CFLAGS -Oz/g' ${ICU_LLVM_ROOT}/configure
+    sed ${IN_PLACE} 's/CXXFLAGS="$CXXFLAGS -O2/CXXFLAGS="$CXXFLAGS -Oz/g' ${ICU_LLVM_ROOT}/configure
 
     # Using uint_least16_t instead of char16_t because Android Clang doesn't recognize char16_t
     # I'm being shady and telling users of the library to use char16_t, so there's an implicit raw cast
     ICU_CORE_CPP_FLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
-    ICU_MODULE_CPP_FLAGS="${ICU_CORE_CPP_FLAGS} -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_BREAK_ITERATION=1"
+    ICU_MODULE_CPP_FLAGS="${ICU_CORE_CPP_FLAGS} -DUCONFIG_NO_LEGACY_CONVERSION=1 -DUCONFIG_NO_BREAK_ITERATION=1 -DUCONFIG_NO_FORMATTING=1"
 
-    export CPPFLAGS="${CPPFLAGS} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
+    export CPPFLAGS="${CPPFLAGS:-} ${ICU_CORE_CPP_FLAGS} ${ICU_MODULE_CPP_FLAGS} -fvisibility=hidden"
 
     emconfigure ./configure ${HOST_ARG} --prefix=${BUILD_PREFIX} \
     --with-cross-build=${ICU_TOOLS_ROOT} \
