@@ -1,6 +1,6 @@
 # mapbox-gl-rtl-text.js
 
-[![Build Status](https://travis-ci.org/mapbox/mapbox-gl-rtl-text.svg?branch=master)](https://travis-ci.org/mapbox/mapbox-gl-rtl-text)
+[![Build Status](https://circleci.com/gh/mapbox/mapbox-gl-rtl-text.svg?style=shield)](https://circleci.com/gh/mapbox/mapbox-gl-rtl-text)
 
 An [Emscripten](https://github.com/kripken/emscripten) port of a subset of the functionality of [International Components for Unicode (ICU)](http://site.icu-project.org/) necessary for [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js) to support [right to left text rendering](https://github.com/mapbox/mapbox-gl/issues/4). Support languages that use the Arabic script along with scripts that render right-to-left but don't require special character shaping (e.g. Hebrew).
 

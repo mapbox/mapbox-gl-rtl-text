@@ -1,0 +1,22 @@
+version: 2
+
+# ------------------------------------------------------------------------------
+jobs:
+    build:
+        docker:
+          - image: mbgl/ci:r2-rtl-text
+        working_directory: /src
+        steps:
+          - checkout
+          - run:
+              name: npm install
+              command: npm install
+          - run:
+              name: Build script
+              command: ./build.sh
+          - run:
+              name: Test Arabic
+              command: npm test
+          - store_artifacts:
+              path: mapbox-gl-rtl-text.js.min
+              destination: .
