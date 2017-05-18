@@ -1,6 +1,12 @@
 version: 2
 
 # ------------------------------------------------------------------------------
+# mbgl/ci:{version}-rtl-text is built from the Dockerfile at
+# https://github.com/mapbox/mbgl-ci-images/rtl-text
+# The base image sets up the build environment and has a (probably stale)
+# clone of https://github.com/mapbox/mapbox-gl-rtl-text
+# At build time, we sync the latest version of the repo and update npm
+# packages.
 jobs:
     build:
         docker:
@@ -9,10 +15,10 @@ jobs:
         steps:
           - checkout
           - run:
-              name: npm install
+              name: Update NPM packages
               command: npm install
           - run:
-              name: Build script
+              name: Build Emscripten-based ICU; Build mapbox-gl-rtl-text.js.min
               command: ./build.sh
           - run:
               name: Test Arabic
