@@ -1,5 +1,13 @@
 CPPFLAGS="-DU_CHARSET_IS_UTF8=1 -DU_CHAR_TYPE=uint_least16_t"
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+   IN_PLACE = "-ibak"
+endif
+ifeq ($(UNAME_S),Darwin)
+   IN_PLACE = "-i '.bak'"
+endif
+
 all: index.js mapbox-gl-rtl-text.js mapbox-gl-rtl-text.js.min
 
 build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
@@ -27,8 +35,8 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 # Even though we're building with -Oz which defaults the EMCC "ASSERTIONS" flag to 0, the emscripten runtime still includes some assertions
 # that need stripping
 build/wrapper_unassert.js: build/wrapper.js
-	node_modules/unassert-cli/bin/cmd.js build/wrapper.js > build/wrapper_unassert.js
-	sed -i '.bak' 's/assert/assert_em/g' build/wrapper_unassert.js
+	node_modules/.bin/unassert build/wrapper.js > build/wrapper_unassert.js
+	sed ${IN_PLACE} 's/assert/assert_em/g' build/wrapper_unassert.js
 
 build/ushape_wrapper.o: src/ushape_wrapper.c
 	mkdir -p build
@@ -39,10 +47,10 @@ build/ubidi_wrapper.o: src/ubidi_wrapper.c
 	${EMSCRIPTEN}/emcc -Oz -c src/ubidi_wrapper.c -I./icu-llvm/source/common -o build/ubidi_wrapper.o
 
 build/icu.js: src/icu.js
-	node_modules/buble/bin/buble src/icu.js -y dangerousForOf > build/icu.js
+	node_modules/.bin/buble src/icu.js -y dangerousForOf > build/icu.js
 
 index.js.min: index.js
-	node_modules/uglifyjs/bin/uglifyjs index.js > index.js.min
+	node_modules/.bin/uglifyjs index.js > index.js.min
 
 index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/module-postfix.js
 	echo "(function(){" > index.js
@@ -50,7 +58,7 @@ index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/module
 	echo "})();" >> index.js
 
 mapbox-gl-rtl-text.js.min: mapbox-gl-rtl-text.js
-	node_modules/uglifyjs/bin/uglifyjs mapbox-gl-rtl-text.js > mapbox-gl-rtl-text.js.min
+	node_modules/.bin/uglifyjs mapbox-gl-rtl-text.js > mapbox-gl-rtl-text.js.min
 
 mapbox-gl-rtl-text.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/plugin-postfix.js
 		echo "(function(){" > mapbox-gl-rtl-text.js
