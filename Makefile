@@ -50,7 +50,7 @@ build/icu.js: src/icu.js
 	node_modules/buble/bin/buble src/icu.js -y dangerousForOf > build/icu.js
 
 index.js.min: index.js
-	node_modules/uglifyjs/bin/uglifyjs index.js > index.js.min
+	node_modules/uglify-js/bin/uglifyjs index.js > index.js.min
 
 index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/module-postfix.js
 	echo "(function(){" > index.js
@@ -58,7 +58,7 @@ index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/module
 	echo "})();" >> index.js
 
 mapbox-gl-rtl-text.js.min: mapbox-gl-rtl-text.js
-	node_modules/uglifyjs/bin/uglifyjs mapbox-gl-rtl-text.js > mapbox-gl-rtl-text.js.min
+	node_modules/uglify-js/bin/uglifyjs mapbox-gl-rtl-text.js > mapbox-gl-rtl-text.js.min
 
 mapbox-gl-rtl-text.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/plugin-postfix.js
 		echo "(function(){" > mapbox-gl-rtl-text.js
