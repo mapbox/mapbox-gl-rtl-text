@@ -40,7 +40,7 @@ Running `build.sh` will:
 	- Generate `wrapper.js`, exposing bytecode sources as Javascript
 	- Embed `wrapper.js` in `index.js` for use with Browserify, and `mapbox-gl-rtl-text.js` for loading directly as a GL JS plugin
 
-Build process only tested on MacOS 10.12.
+Build process only tested on MacOS 10.12 and Ubuntu Xenial.
 
 Running `npm test` will run unit tests in `test/*.test.js`. Use `npm test -- --cov` to generate code coverage stats.
 
@@ -51,3 +51,6 @@ Running `npm test` will run unit tests in `test/*.test.js`. Use `npm test -- --c
  - `npm version {patch|minor|major}`
  - `git push --follow-tags`
  - `aws s3 cp --acl public-read mapbox-gl-rtl-text.js.min s3://mapbox-gl-js/plugins/mapbox-gl-rtl-text/v$(node --print --eval "require('./package.json').version")/mapbox-gl-rtl-text.js`
+
+## Experimental Web Assembly support
+`make all` will now build a second version of the plugin built using Web Assembly. Once wasm support is widespread, the technology promises smaller package sizes and faster load times. The output file `mapbox-gl-rtl-text.wasm.js` will try to locally load a `wrapper.wasm.wasm`. To test the wasm version of the plugin, you need to somehow host `wrapper.wasm` and modify the javascript wrapper to pick it up.
