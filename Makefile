@@ -8,7 +8,7 @@ ifeq ($(UNAME_S),Darwin)
    IN_PLACE = "-i '.bak'"
 endif
 
-all: index.js mapbox-gl-rtl-text.js mapbox-gl-rtl-text.js.min
+all: index.js mapbox-gl-rtl-text.js mapbox-gl-rtl-text.js.min mapbox-gl-rtl-text.wasm.js mapbox-gl-rtl-text.wasm.js.min
 
 build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	mkdir -p build
@@ -25,6 +25,23 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 		--memory-init-file 0 \
 		--closure 1
 
+build/wrapper.wasm.js: build/ushape_wrapper.o build/ubidi_wrapper.o
+	mkdir -p build
+	${EMSCRIPTEN}/emcc -Oz -v -o build/wrapper.wasm.js build/ushape_wrapper.o build/ubidi_wrapper.o icu-llvm/source/lib/libicuuc.a \
+	    -s EXPORTED_FUNCTIONS="['_ushape_arabic','_bidi_processText','_bidi_getLine','_bidi_getParagraphEndIndex']" \
+	    -s NO_EXIT_RUNTIME="1" \
+	    -s DEAD_FUNCTIONS="[]" \
+	    -s NO_FILESYSTEM="1" \
+	    -s NO_BROWSER="1" \
+	    -s INLINING_LIMIT="1" \
+		-s ALLOW_MEMORY_GROWTH="1" \
+	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall','_malloc','_free']" \
+		-s WASM=1 \
+	    --llvm-lto 3 \
+		--memory-init-file 0 \
+		--closure 1
+	cp build/wrapper.wasm.wasm ./wrapper.wasm
+
 # Using --memory-init-file 1 speeds up parsing, but requires asynchronously fetching the data. Also requires -s NO_BROWSER="0"
 #--closure 1 \ # Using Closure compiler might be able to prevent non-exported functions from being included at all
 
@@ -37,6 +54,10 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 build/wrapper_unassert.js: build/wrapper.js
 	node_modules/.bin/unassert build/wrapper.js > build/wrapper_unassert.js
 	sed ${IN_PLACE} 's/assert/assert_em/g' build/wrapper_unassert.js
+
+build/wrapper_unassert.wasm.js: build/wrapper.wasm.js
+	node_modules/.bin/unassert build/wrapper.wasm.js > build/wrapper_unassert.wasm.js
+	sed ${IN_PLACE} 's/assert/assert_em/g' build/wrapper_unassert.wasm.js
 
 build/ushape_wrapper.o: src/ushape_wrapper.c
 	mkdir -p build
@@ -60,10 +81,18 @@ index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/module
 mapbox-gl-rtl-text.js.min: mapbox-gl-rtl-text.js
 	node_modules/.bin/uglifyjs mapbox-gl-rtl-text.js > mapbox-gl-rtl-text.js.min
 
+mapbox-gl-rtl-text.wasm.js.min: mapbox-gl-rtl-text.wasm.js
+	node_modules/.bin/uglifyjs mapbox-gl-rtl-text.wasm.js > mapbox-gl-rtl-text.wasm.js.min
+
 mapbox-gl-rtl-text.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/plugin-postfix.js
 		echo "(function(){" > mapbox-gl-rtl-text.js
 		cat src/module-prefix.js build/wrapper_unassert.js build/icu.js src/plugin-postfix.js >> mapbox-gl-rtl-text.js
 		echo "})();" >> mapbox-gl-rtl-text.js
+
+mapbox-gl-rtl-text.wasm.js: build/wrapper_unassert.wasm.js build/icu.js src/module-prefix.wasm.js src/plugin-postfix.js
+		echo "(function(){" > mapbox-gl-rtl-text.wasm.js
+		cat src/module-prefix.js build/wrapper_unassert.wasm.js build/icu.js src/plugin-postfix.js >> mapbox-gl-rtl-text.wasm.js
+		echo "})();" >> mapbox-gl-rtl-text.wasm.js
 
 clean:
 	rm -rf build
