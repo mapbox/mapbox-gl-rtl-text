@@ -17,7 +17,6 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	    -s NO_EXIT_RUNTIME="1" \
 	    -s DEAD_FUNCTIONS="[]" \
 	    -s NO_FILESYSTEM="1" \
-	    -s NO_BROWSER="1" \
 	    -s INLINING_LIMIT="1" \
 		-s ALLOW_MEMORY_GROWTH="1" \
 	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall','_malloc','_free']" \
@@ -32,7 +31,6 @@ build/wrapper.wasm.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	    -s NO_EXIT_RUNTIME="1" \
 	    -s DEAD_FUNCTIONS="[]" \
 	    -s NO_FILESYSTEM="1" \
-	    -s NO_BROWSER="1" \
 	    -s INLINING_LIMIT="1" \
 		-s ALLOW_MEMORY_GROWTH="1" \
 	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall','_malloc','_free']" \
