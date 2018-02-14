@@ -22,7 +22,7 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall','_malloc','_free']" \
 	    --llvm-lto 3 \
 		--memory-init-file 0 \
-		--closure 1
+		--closure 0
 
 build/wrapper.wasm.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	mkdir -p build
@@ -37,7 +37,7 @@ build/wrapper.wasm.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 		-s WASM=1 \
 	    --llvm-lto 3 \
 		--memory-init-file 0 \
-		--closure 1
+		--closure 0
 	cp build/wrapper.wasm.wasm ./wrapper.wasm
 
 # Using --memory-init-file 1 speeds up parsing, but requires asynchronously fetching the data. Also requires -s NO_BROWSER="0"
