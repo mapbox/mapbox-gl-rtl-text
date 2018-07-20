@@ -34,24 +34,10 @@ var ENVIRONMENT_IS_WEB = false;
 var ENVIRONMENT_IS_WORKER = false;
 var ENVIRONMENT_IS_NODE = false;
 var ENVIRONMENT_IS_SHELL = false;
-if (Module['ENVIRONMENT']) {
-    if (Module['ENVIRONMENT'] === 'WEB') {
-        ENVIRONMENT_IS_WEB = true;
-    } else if (Module['ENVIRONMENT'] === 'WORKER') {
-        ENVIRONMENT_IS_WORKER = true;
-    } else if (Module['ENVIRONMENT'] === 'NODE') {
-        ENVIRONMENT_IS_NODE = true;
-    } else if (Module['ENVIRONMENT'] === 'SHELL') {
-        ENVIRONMENT_IS_SHELL = true;
-    } else {
-        throw new Error('Module[\'ENVIRONMENT\'] value is not valid. must be one of: WEB|WORKER|NODE|SHELL.');
-    }
-} else {
-    ENVIRONMENT_IS_WEB = typeof window === 'object';
-    ENVIRONMENT_IS_WORKER = typeof importScripts === 'function';
-    ENVIRONMENT_IS_NODE = typeof process === 'object' && typeof require === 'function' && !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_WORKER;
-    ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
-}
+ENVIRONMENT_IS_WEB = typeof window === 'object';
+ENVIRONMENT_IS_WORKER = typeof importScripts === 'function';
+ENVIRONMENT_IS_NODE = typeof process === 'object' && typeof require === 'function' && !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_WORKER;
+ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
 if (ENVIRONMENT_IS_NODE) {
     var nodeFS;
     var nodePath;
@@ -87,6 +73,9 @@ if (ENVIRONMENT_IS_NODE) {
     process['on']('unhandledRejection', function (reason, p) {
         process['exit'](1);
     });
+    Module['quit'] = function (status) {
+        process['exit'](status);
+    };
     Module['inspect'] = function () {
         return '[Emscripten Module object]';
     };
@@ -110,7 +99,7 @@ if (ENVIRONMENT_IS_NODE) {
         Module['arguments'] = arguments;
     }
     if (typeof quit === 'function') {
-        Module['quit'] = function (status, toThrow) {
+        Module['quit'] = function (status) {
             quit(status);
         };
     }
@@ -144,17 +133,13 @@ if (ENVIRONMENT_IS_NODE) {
         xhr.onerror = onerror;
         xhr.send(null);
     };
-    if (typeof arguments != 'undefined') {
-        Module['arguments'] = arguments;
-    }
     Module['setWindowTitle'] = function (title) {
         document.title = title;
     };
+} else {
 }
-Module['print'] = typeof console !== 'undefined' ? console.log : typeof print !== 'undefined' ? print : null;
-Module['printErr'] = typeof printErr !== 'undefined' ? printErr : typeof console !== 'undefined' && console.warn || Module['print'];
-Module.print = Module['print'];
-Module.printErr = Module['printErr'];
+var out = Module['print'] || (typeof console !== 'undefined' ? console.log.bind(console) : typeof print !== 'undefined' ? print : null);
+var err = Module['printErr'] || (typeof printErr !== 'undefined' ? printErr : typeof console !== 'undefined' && console.warn.bind(console) || out);
 for (key in moduleOverrides) {
     if (moduleOverrides.hasOwnProperty(key)) {
         Module[key] = moduleOverrides[key];
@@ -167,12 +152,33 @@ function staticAlloc(size) {
     STATICTOP = STATICTOP + size + 15 & -16;
     return ret;
 }
+function dynamicAlloc(size) {
+    var ret = HEAP32[DYNAMICTOP_PTR >> 2];
+    var end = ret + size + 15 & -16;
+    HEAP32[DYNAMICTOP_PTR >> 2] = end;
+    if (end >= TOTAL_MEMORY) {
+        var success = enlargeMemory();
+        if (!success) {
+            HEAP32[DYNAMICTOP_PTR >> 2] = ret;
+            return 0;
+        }
+    }
+    return ret;
+}
 function alignMemory(size, factor) {
     if (!factor)
         factor = STACK_ALIGN;
     var ret = size = Math.ceil(size / factor) * factor;
     return ret;
 }
+var asm2wasmImports = {
+    'f64-rem': function (x, y) {
+        return x % y;
+    },
+    'debugger': function () {
+        debugger;
+    }
+};
 var functionPointers = new Array(0);
 var GLOBAL_BASE = 1024;
 var ABORT = 0;
@@ -213,6 +219,13 @@ var toC = {
     'array': JSfuncs['arrayToC']
 };
 function ccall(ident, returnType, argTypes, args, opts) {
+    function convertReturnValue(ret) {
+        if (returnType === 'string')
+            return Pointer_stringify(ret);
+        if (returnType === 'boolean')
+            return Boolean(ret);
+        return ret;
+    }
     var func = getCFunc(ident);
     var cArgs = [];
     var stack = 0;
@@ -229,12 +242,17 @@ function ccall(ident, returnType, argTypes, args, opts) {
         }
     }
     var ret = func.apply(null, cArgs);
-    if (returnType === 'string')
-        ret = Pointer_stringify(ret);
-    if (stack !== 0) {
+    ret = convertReturnValue(ret);
+    if (stack !== 0)
         stackRestore(stack);
-    }
     return ret;
+}
+function getMemory(size) {
+    if (!staticSealed)
+        return staticAlloc(size);
+    if (!runtimeInitialized)
+        return dynamicAlloc(size);
+    return _malloc(size);
 }
 function Pointer_stringify(ptr, length) {
     if (length === 0 || !ptr)
@@ -500,7 +518,7 @@ try {
 var TOTAL_STACK = Module['TOTAL_STACK'] || 5242880;
 var TOTAL_MEMORY = Module['TOTAL_MEMORY'] || 16777216;
 if (TOTAL_MEMORY < TOTAL_STACK)
-    Module.printErr('TOTAL_MEMORY should be larger than TOTAL_STACK, was ' + TOTAL_MEMORY + '! (TOTAL_STACK=' + TOTAL_STACK + ')');
+    err('TOTAL_MEMORY should be larger than TOTAL_STACK, was ' + TOTAL_MEMORY + '! (TOTAL_STACK=' + TOTAL_STACK + ')');
 if (Module['buffer']) {
     buffer = Module['buffer'];
 } else {
@@ -516,10 +534,6 @@ updateGlobalBufferViews();
 function getTotalMemory() {
     return TOTAL_MEMORY;
 }
-HEAP32[0] = 1668509029;
-HEAP16[1] = 25459;
-if (HEAPU8[2] !== 115 || HEAPU8[3] !== 99)
-    throw 'Runtime error: expected the system to be little-endian!';
 function callRuntimeCallbacks(callbacks) {
     while (callbacks.length > 0) {
         var callback = callbacks.shift();
@@ -542,10 +556,8 @@ function callRuntimeCallbacks(callbacks) {
 var __ATPRERUN__ = [];
 var __ATINIT__ = [];
 var __ATMAIN__ = [];
-var __ATEXIT__ = [];
 var __ATPOSTRUN__ = [];
 var runtimeInitialized = false;
-var runtimeExited = false;
 function preRun() {
     if (Module['preRun']) {
         if (typeof Module['preRun'] == 'function')
@@ -564,10 +576,6 @@ function ensureInitRuntime() {
 }
 function preMain() {
     callRuntimeCallbacks(__ATMAIN__);
-}
-function exitRuntime() {
-    callRuntimeCallbacks(__ATEXIT__);
-    runtimeExited = true;
 }
 function postRun() {
     if (Module['postRun']) {
@@ -588,27 +596,13 @@ function addOnPostRun(cb) {
 function writeArrayToMemory(array, buffer) {
     HEAP8.set(array, buffer);
 }
-var Math_abs = Math.abs;
-var Math_cos = Math.cos;
-var Math_sin = Math.sin;
-var Math_tan = Math.tan;
-var Math_acos = Math.acos;
-var Math_asin = Math.asin;
-var Math_atan = Math.atan;
-var Math_atan2 = Math.atan2;
-var Math_exp = Math.exp;
-var Math_log = Math.log;
-var Math_sqrt = Math.sqrt;
-var Math_ceil = Math.ceil;
-var Math_floor = Math.floor;
-var Math_pow = Math.pow;
-var Math_imul = Math.imul;
-var Math_fround = Math.fround;
-var Math_round = Math.round;
-var Math_min = Math.min;
-var Math_max = Math.max;
-var Math_clz32 = Math.clz32;
-var Math_trunc = Math.trunc;
+function writeAsciiToMemory(str, buffer, dontAddNull) {
+    for (var i = 0; i < str.length; ++i) {
+        HEAP8[buffer++ >> 0] = str.charCodeAt(i);
+    }
+    if (!dontAddNull)
+        HEAP8[buffer >> 0] = 0;
+}
 var runDependencies = 0;
 var runDependencyWatcher = null;
 var dependenciesFulfilled = null;
@@ -660,21 +654,14 @@ function integrateWasmJS() {
     var info = {
         'global': null,
         'env': null,
-        'asm2wasm': {
-            'f64-rem': function (x, y) {
-                return x % y;
-            },
-            'debugger': function () {
-                debugger;
-            }
-        },
+        'asm2wasm': asm2wasmImports,
         'parent': Module
     };
     var exports = null;
     function mergeMemory(newBuffer) {
         var oldBuffer = Module['buffer'];
         if (newBuffer.byteLength < oldBuffer.byteLength) {
-            Module['printErr']('the new buffer in mergeMemory is smaller than the previous one. in native wasm, we should grow memory here');
+            err('the new buffer in mergeMemory is smaller than the previous one. in native wasm, we should grow memory here');
         }
         var oldView = new Int8Array(oldBuffer);
         var newView = new Int8Array(newBuffer);
@@ -716,11 +703,11 @@ function integrateWasmJS() {
     }
     function doNativeWasm(global, env, providedBuffer) {
         if (typeof WebAssembly !== 'object') {
-            Module['printErr']('no native wasm support detected');
+            err('no native wasm support detected');
             return false;
         }
         if (!(Module['wasmMemory'] instanceof WebAssembly.Memory)) {
-            Module['printErr']('no native wasm Memory in use');
+            err('no native wasm Memory in use');
             return false;
         }
         env['memory'] = Module['wasmMemory'];
@@ -743,7 +730,7 @@ function integrateWasmJS() {
             try {
                 return Module['instantiateWasm'](info, receiveInstance);
             } catch (e) {
-                Module['printErr']('Module.instantiateWasm callback failed with error: ' + e);
+                err('Module.instantiateWasm callback failed with error: ' + e);
                 return false;
             }
         }
@@ -754,14 +741,14 @@ function integrateWasmJS() {
             getBinaryPromise().then(function (binary) {
                 return WebAssembly.instantiate(binary, info);
             }).then(receiver).catch(function (reason) {
-                Module['printErr']('failed to asynchronously prepare wasm: ' + reason);
+                err('failed to asynchronously prepare wasm: ' + reason);
                 abort(reason);
             });
         }
         if (!Module['wasmBinary'] && typeof WebAssembly.instantiateStreaming === 'function' && !isDataURI(wasmBinaryFile) && typeof fetch === 'function') {
             WebAssembly.instantiateStreaming(fetch(wasmBinaryFile, { credentials: 'same-origin' }), info).then(receiveInstantiatedSource).catch(function (reason) {
-                Module['printErr']('wasm streaming compile failed: ' + reason);
-                Module['printErr']('falling back to ArrayBuffer instantiation');
+                err('wasm streaming compile failed: ' + reason);
+                err('falling back to ArrayBuffer instantiation');
                 instantiateArrayBuffer(receiveInstantiatedSource);
             });
         } else {
@@ -830,19 +817,64 @@ function integrateWasmJS() {
         }
         var exports;
         exports = doNativeWasm(global, env, providedBuffer);
-        if (!exports)
-            abort('no binaryen method succeeded. consider enabling more options, like interpreting, if you want that: https://github.com/kripken/emscripten/wiki/WebAssembly#binaryen-methods');
         return exports;
     };
 }
 integrateWasmJS();
 STATIC_BASE = GLOBAL_BASE;
-STATICTOP = STATIC_BASE + 70176;
-__ATINIT__.push();
-var STATIC_BUMP = 70176;
+STATICTOP = STATIC_BASE + 71792;
+__ATINIT__.push({
+    func: function () {
+        ___emscripten_environ_constructor();
+    }
+});
+var STATIC_BUMP = 71792;
 Module['STATIC_BASE'] = STATIC_BASE;
 Module['STATIC_BUMP'] = STATIC_BUMP;
 STATICTOP += 16;
+var ENV = {};
+function ___buildEnvironment(environ) {
+    var MAX_ENV_VALUES = 64;
+    var TOTAL_ENV_SIZE = 1024;
+    var poolPtr;
+    var envPtr;
+    if (!___buildEnvironment.called) {
+        ___buildEnvironment.called = true;
+        ENV['USER'] = ENV['LOGNAME'] = 'web_user';
+        ENV['PATH'] = '/';
+        ENV['PWD'] = '/';
+        ENV['HOME'] = '/home/web_user';
+        ENV['LANG'] = 'C.UTF-8';
+        ENV['_'] = Module['thisProgram'];
+        poolPtr = getMemory(TOTAL_ENV_SIZE);
+        envPtr = getMemory(MAX_ENV_VALUES * 4);
+        HEAP32[envPtr >> 2] = poolPtr;
+        HEAP32[environ >> 2] = envPtr;
+    } else {
+        envPtr = HEAP32[environ >> 2];
+        poolPtr = HEAP32[envPtr >> 2];
+    }
+    var strings = [];
+    var totalSize = 0;
+    for (var key in ENV) {
+        if (typeof ENV[key] === 'string') {
+            var line = key + '=' + ENV[key];
+            strings.push(line);
+            totalSize += line.length;
+        }
+    }
+    if (totalSize > TOTAL_ENV_SIZE) {
+        throw new Error('Environment size exceeded TOTAL_ENV_SIZE!');
+    }
+    var ptrSize = 4;
+    for (var i = 0; i < strings.length; i++) {
+        var line = strings[i];
+        writeAsciiToMemory(line, poolPtr);
+        HEAP32[envPtr + i * ptrSize >> 2] = poolPtr;
+        poolPtr += line.length + 1;
+    }
+    HEAP32[envPtr + strings.length * ptrSize >> 2] = 0;
+}
 var EXCEPTIONS = {
     last: 0,
     caught: [],
@@ -850,7 +882,8 @@ var EXCEPTIONS = {
     deAdjust: function (adjusted) {
         if (!adjusted || EXCEPTIONS.infos[adjusted])
             return adjusted;
-        for (var ptr in EXCEPTIONS.infos) {
+        for (var key in EXCEPTIONS.infos) {
+            var ptr = +key;
             var info = EXCEPTIONS.infos[ptr];
             if (info.adjusted === adjusted) {
                 return ptr;
@@ -907,6 +940,7 @@ Module.asmLibraryArg = {
     'enlargeMemory': enlargeMemory,
     'getTotalMemory': getTotalMemory,
     'abortOnCannotGrowMemory': abortOnCannotGrowMemory,
+    '___buildEnvironment': ___buildEnvironment,
     '___setErrNo': ___setErrNo,
     '_emscripten_memcpy_big': _emscripten_memcpy_big,
     'DYNAMICTOP_PTR': DYNAMICTOP_PTR,
@@ -914,17 +948,32 @@ Module.asmLibraryArg = {
 };
 var asm = Module['asm'](Module.asmGlobalArg, Module.asmLibraryArg, buffer);
 Module['asm'] = asm;
+var ___emscripten_environ_constructor = Module['___emscripten_environ_constructor'] = function () {
+    return Module['asm']['___emscripten_environ_constructor'].apply(null, arguments);
+};
 var _bidi_getLine = Module['_bidi_getLine'] = function () {
     return Module['asm']['_bidi_getLine'].apply(null, arguments);
 };
 var _bidi_getParagraphEndIndex = Module['_bidi_getParagraphEndIndex'] = function () {
     return Module['asm']['_bidi_getParagraphEndIndex'].apply(null, arguments);
 };
+var _bidi_getVisualRun = Module['_bidi_getVisualRun'] = function () {
+    return Module['asm']['_bidi_getVisualRun'].apply(null, arguments);
+};
 var _bidi_processText = Module['_bidi_processText'] = function () {
     return Module['asm']['_bidi_processText'].apply(null, arguments);
 };
+var _bidi_setLine = Module['_bidi_setLine'] = function () {
+    return Module['asm']['_bidi_setLine'].apply(null, arguments);
+};
+var _bidi_writeReverse = Module['_bidi_writeReverse'] = function () {
+    return Module['asm']['_bidi_writeReverse'].apply(null, arguments);
+};
 var _emscripten_replace_memory = Module['_emscripten_replace_memory'] = function () {
     return Module['asm']['_emscripten_replace_memory'].apply(null, arguments);
+};
+var _malloc = Module['_malloc'] = function () {
+    return Module['asm']['_malloc'].apply(null, arguments);
 };
 var _ushape_arabic = Module['_ushape_arabic'] = function () {
     return Module['asm']['_ushape_arabic'].apply(null, arguments);
@@ -952,7 +1001,6 @@ function ExitStatus(status) {
 }
 ExitStatus.prototype = new Error();
 ExitStatus.prototype.constructor = ExitStatus;
-var initialStackTop;
 dependenciesFulfilled = function runCaller() {
     if (!Module['calledRun'])
         run();
@@ -994,32 +1042,13 @@ function run(args) {
     }
 }
 Module['run'] = run;
-function exit(status, implicit) {
-    if (implicit && Module['noExitRuntime'] && status === 0) {
-        return;
-    }
-    if (Module['noExitRuntime']) {
-    } else {
-        ABORT = true;
-        EXITSTATUS = status;
-        STACKTOP = initialStackTop;
-        exitRuntime();
-        if (Module['onExit'])
-            Module['onExit'](status);
-    }
-    if (ENVIRONMENT_IS_NODE) {
-        process['exit'](status);
-    }
-    Module['quit'](status, new ExitStatus(status));
-}
-Module['exit'] = exit;
 function abort(what) {
     if (Module['onAbort']) {
         Module['onAbort'](what);
     }
     if (what !== undefined) {
-        Module.print(what);
-        Module.printErr(what);
+        out(what);
+        err(what);
         what = JSON.stringify(what);
     } else {
         what = '';
@@ -1086,19 +1115,29 @@ function mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount) {
     return mergedParagraphLineBreakPoints;
 }
 
-function processBidirectionalText(input, lineBreakPoints) {
+// This function is stateful: it sets a static BiDi paragaph object
+// on the "native" side
+function setParagraph(input, stringInputPtr, nDataBytes) {
     if (!input) {
-        return [input];
+        return null;
     }
 
-    var nDataBytes = (input.length + 1) * 2;
-    var stringInputPtr = Module._malloc(nDataBytes);
     Module.stringToUTF16(input, stringInputPtr, nDataBytes);
     var paragraphCount = Module.ccall('bidi_processText', 'number', ['number', 'number'], [stringInputPtr, input.length]);
 
     if (paragraphCount === 0) {
         Module._free(stringInputPtr);
-        return [input]; // TODO: throw exception?
+        return null;
+    }
+    return paragraphCount;
+}
+
+function processBidirectionalText(input, lineBreakPoints) {
+    var nDataBytes = (input.length + 1) * 2;
+    var stringInputPtr = Module._malloc(nDataBytes);
+    var paragraphCount = setParagraph(input, stringInputPtr, nDataBytes);
+    if (!paragraphCount) {
+        return [input];
     }
 
     var mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
@@ -1127,5 +1166,98 @@ function processBidirectionalText(input, lineBreakPoints) {
     return lines;
 }
 
-self.registerRTLTextPlugin({'applyArabicShaping': applyArabicShaping, 'processBidirectionalText': processBidirectionalText});
+function createInt32Ptr() {
+    return Module._malloc(4);
+}
+
+function readInt32Ptr(ptr) {
+    var heapView = new Int32Array(Module.HEAPU8.buffer, ptr, 1);
+    var result = heapView[0];
+    Module._free(ptr);
+    return result;
+}
+
+function writeReverse(stringInputPtr, logicalStart, logicalEnd) {
+    var returnStringPtr = Module.ccall('bidi_writeReverse', 'number', ['number', 'number', 'number'], [stringInputPtr, logicalStart, logicalEnd - logicalStart]);
+
+    if (returnStringPtr === 0) {
+        return null;
+    }
+    var reversed = Module.UTF16ToString(returnStringPtr);
+    Module._free(returnStringPtr);
+    return reversed;
+}
+
+function processStyledBidirectionalText(text, styleIndices, lineBreakPoints) {
+    var nDataBytes = (text.length + 1) * 2;
+    var stringInputPtr = Module._malloc(nDataBytes);
+    var paragraphCount = setParagraph(text, stringInputPtr, nDataBytes);
+    if (!paragraphCount) {
+        return [{text: text, styleIndices: styleIndices}];
+    }
+
+    var mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
+
+    var startIndex = 0;
+    var lines = [];
+
+    for (var i$1 = 0, list = mergedParagraphLineBreakPoints; i$1 < list.length; i$1 += 1) {
+        var lineBreakPoint = list[i$1];
+
+        var lineText = "";
+        var lineStyleIndices = [];
+        var runCount = Module.ccall('bidi_setLine', 'number', ['number', 'number'], [startIndex, lineBreakPoint]);
+
+        if (!runCount) {
+            Module._free(stringInputPtr);
+            return []; // TODO: throw exception?
+        }
+
+        for (var i = 0; i < runCount; i++) {
+            var logicalStartPtr = createInt32Ptr();
+            var logicalLengthPtr = createInt32Ptr();
+            var isReversed = Module.ccall('bidi_getVisualRun', 'number', ['number', 'number', 'number'], [i, logicalStartPtr, logicalLengthPtr]);
+
+            var logicalStart = startIndex + readInt32Ptr(logicalStartPtr);
+            var logicalLength = readInt32Ptr(logicalLengthPtr);
+            var logicalEnd = logicalStart + logicalLength;
+            if (isReversed) {
+                // Within this reversed section, iterate logically backwards
+                // Each time we see a change in style, render a reversed chunk
+                // of everything since the last change
+                var styleRunStart = logicalEnd;
+                var currentStyleIndex = styleIndices[styleRunStart - 1];
+                for (var j = logicalEnd - 1; j >= logicalStart; j--) {
+                    if (currentStyleIndex !== styleIndices[j] || j === logicalStart) {
+                        var styleRunEnd = j === logicalStart ? j : j + 1;
+                        var reversed = writeReverse(stringInputPtr, styleRunEnd, styleRunStart);
+                        if (!reversed) {
+                            Module._free(stringInputPtr);
+                            return [];
+                        }
+                        lineText += reversed;
+                        for (var k = 0; k < reversed.length; k++) {
+                            lineStyleIndices.push(currentStyleIndex);
+                        }
+                        currentStyleIndex = styleIndices[j];
+                        styleRunStart = styleRunEnd;
+                    }
+                }
+
+            } else {
+                lineText += text.substring(logicalStart, logicalEnd);
+                lineStyleIndices = lineStyleIndices.concat(styleIndices.slice(logicalStart, logicalEnd));
+            }
+        }
+
+        lines.push([lineText, lineStyleIndices]);
+        startIndex = lineBreakPoint;
+    }
+
+    Module._free(stringInputPtr); // Input string must live until getLine calls are finished
+
+    return lines;
+}
+
+self.registerRTLTextPlugin({'applyArabicShaping': applyArabicShaping, 'processBidirectionalText': processBidirectionalText, 'processStyledBidirectionalText': processStyledBidirectionalText});
 })();
