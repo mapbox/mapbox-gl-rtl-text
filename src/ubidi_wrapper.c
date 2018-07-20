@@ -35,6 +35,57 @@ uint32_t bidi_getParagraphEndIndex(uint32_t paragraphIndex) {
     return paragraphEndIndex;
 }
 
+
+uint32_t bidi_getVisualRun(uint32_t runIndex, int32_t* pLogicalStart, int32_t* pLogicalLength) {
+    UBiDiDirection direction = ubidi_getVisualRun(bidiLine, runIndex, pLogicalStart, pLogicalLength);
+    return direction == UBIDI_RTL ? 1 : 0;
+}
+
+uint32_t bidi_setLine(uint32_t start, uint32_t end) {
+    UErrorCode errorCode = U_ZERO_ERROR;
+    if (!bidiLine) {
+        bidiLine = ubidi_open();
+    }
+
+    ubidi_setLine(bidiText, start, end, bidiLine, &errorCode);
+
+    if (U_FAILURE(errorCode)) {
+        //printf("ubidi_setLine Error code: %u\n", errorCode);
+        return 0;
+    }
+
+    errorCode = U_ZERO_ERROR;
+    uint32_t runs = ubidi_countRuns(bidiLine, &errorCode);
+    if (U_FAILURE(errorCode)) {
+        return 0;
+    }
+    return runs;
+}
+
+UChar* bidi_writeReverse(UChar* src, uint32_t logicalStart, uint32_t logicalLength) {
+    UErrorCode errorCode = U_ZERO_ERROR;
+    UChar* output = malloc((logicalLength + 1) * sizeof(UChar));
+
+    // UBIDI_DO_MIRRORING: Apply unicode mirroring of characters like parentheses
+    // UBIDI_REMOVE_BIDI_CONTROLS: Now that all the lines are set, remove control characters so that
+    // they don't show up on screen (some fonts have glyphs representing them)
+    int32_t outputLength = ubidi_writeReverse(
+                            src + logicalStart,
+                            logicalLength,
+                            output,
+                            logicalLength,
+                            UBIDI_DO_MIRRORING | UBIDI_REMOVE_BIDI_CONTROLS,
+                            &errorCode);
+
+    if (U_FAILURE(errorCode)) {
+        //printf("ubidi_setLine Error code: %u\n", errorCode);
+        return 0;
+    }
+
+    output[outputLength] = 0;
+    return output;
+}
+
 UChar* bidi_getLine(uint32_t start, uint32_t end) {
     UErrorCode errorCode = U_ZERO_ERROR;
     if (!bidiLine) {

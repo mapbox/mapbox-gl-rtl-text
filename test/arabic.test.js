@@ -49,3 +49,15 @@ tap.equal(
     icu.applyArabicShaping("اليَمَن‎‎"),
     "ﺍﻟﻴﹷﻤﹷﻦ‎‎"
 );
+
+// Line breaking with styled bidirectional text
+tap.same(
+    icu.processStyledBidirectionalText(
+        icu.applyArabicShaping("مكتبة الإسكندرية‎‎ Maktabat al-Iskandarīyah"),
+        [0,0,0,0,0,1,1,1,1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,4,5,5,5,5,6,6,6,6,6,6,6,6,6,6,7,7,7],
+        [5, 18, 30]),
+    [["ﺔﺒﺘﻜﻣ", [0,0,0,0,0]],
+     [" ‎‎ﺔﻳﺭﺪﻨﻜﺳﻹﺍ ", [2,2,2,2,2,2,2,1,1,1,1,1,1]],
+     ["Maktabat al-", [2,3,3,3,3,3,4,5,5,5,5,6]],
+     ["Iskandarīyah", [6,6,6,6,6,6,6,6,6,7,7,7]]]
+);

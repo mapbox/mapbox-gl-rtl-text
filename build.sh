@@ -20,7 +20,7 @@ function setup_emsdk {
 	download_and_extract \
         https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz \
         emsdk-portable.tgz \
-        90c9b5c2ac03f4ac5295fa0f7e5caaf343169b3f
+        5524019776723b42ce731f20d9dff91be63c8f50
 
 	emsdk-portable/emsdk update
 	emsdk-portable/emsdk install latest
@@ -30,9 +30,9 @@ function setup_emsdk {
 
 function fetch_icu {
 	download_and_extract \
-        http://download.icu-project.org/files/icu4c/58.1/icu4c-58_1-src.tgz \
-        icu58_1.tgz \
-        ad6995ba349ed79dde0f25d125a9b0bb56979420
+        http://download.icu-project.org/files/icu4c/62.1/icu4c-62_1-src.tgz \
+        icu62_1.tgz \
+        8a216e755cddd169b9ec8cc7edeed38824900f06
         cp -R icu icu-llvm
 }
 
