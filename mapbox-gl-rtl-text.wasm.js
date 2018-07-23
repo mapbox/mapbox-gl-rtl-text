@@ -1069,6 +1069,16 @@ Module['noExitRuntime'] = true;
 run();
 'use strict';
 
+
+/**
+ * Takes logical input and replaces Arabic characters with the "presentation form"
+ * of their initial/medial/final forms, based on their order in the input.
+ *
+ * The results are still in logical order.
+ *
+ * @param {string} [input] Input text in logical order
+ * @returns {string} Transformed text using Arabic presentation forms
+ */
 function applyArabicShaping(input) {
     if (!input)
         { return input; }
@@ -1132,6 +1142,16 @@ function setParagraph(input, stringInputPtr, nDataBytes) {
     return paragraphCount;
 }
 
+/**
+ * Takes input text in logical order and applies the BiDi algorithm using the chosen
+ * line break point to generate a set of lines with the characters re-arranged into
+ * visual order.
+ *
+ * @param {string} [input] Input text in logical order
+ * @param {Array<number>} [lineBreakPoints] Each line break is an index into the input string
+ *
+ * @returns {Array<string>} One string per line, with each string in visual order
+ */
 function processBidirectionalText(input, lineBreakPoints) {
     var nDataBytes = (input.length + 1) * 2;
     var stringInputPtr = Module._malloc(nDataBytes);
@@ -1142,13 +1162,13 @@ function processBidirectionalText(input, lineBreakPoints) {
 
     var mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
 
-    var startIndex = 0;
+    var lineStartIndex = 0;
     var lines = [];
 
     for (var i = 0, list = mergedParagraphLineBreakPoints; i < list.length; i += 1) {
         var lineBreakPoint = list[i];
 
-        var returnStringPtr = Module.ccall('bidi_getLine', 'number', ['number', 'number'], [startIndex, lineBreakPoint]);
+        var returnStringPtr = Module.ccall('bidi_getLine', 'number', ['number', 'number'], [lineStartIndex, lineBreakPoint]);
 
         if (returnStringPtr === 0) {
             Module._free(stringInputPtr);
@@ -1158,7 +1178,7 @@ function processBidirectionalText(input, lineBreakPoints) {
         lines.push(Module.UTF16ToString(returnStringPtr));
         Module._free(returnStringPtr);
 
-        startIndex = lineBreakPoint;
+        lineStartIndex = lineBreakPoint;
     }
 
     Module._free(stringInputPtr); // Input string must live until getLine calls are finished
@@ -1170,7 +1190,7 @@ function createInt32Ptr() {
     return Module._malloc(4);
 }
 
-function readInt32Ptr(ptr) {
+function consumeInt32Ptr(ptr) {
     var heapView = new Int32Array(Module.HEAPU8.buffer, ptr, 1);
     var result = heapView[0];
     Module._free(ptr);
@@ -1188,6 +1208,24 @@ function writeReverse(stringInputPtr, logicalStart, logicalEnd) {
     return reversed;
 }
 
+/**
+ * Takes input text in logical order and applies the BiDi algorithm using the chosen
+ * line break point to generate a set of lines with the characters re-arranged into
+ * visual order.
+ *
+ * Also takes an array of "style indices" that specify different styling on the input
+ * characters (the styles are represented as integers here, the caller is responsible
+ * for the actual implementation of styling). BiDi can both reorder and add/remove
+ * characters from the input string, but this function copies style information from
+ * the "source" logical characters to their corresponding visual characters in the output.
+ *
+ * @param {string} [input] Input text in logical order
+ * @param {Array<number>} [styleIndices] Same length as input text, each entry represents the style
+ *                                       of the corresponding input character.
+ * @param {Array<number>} [lineBreakPoints] Each line break is an index into the input string
+ * @returns {Array<[string,Array<number>>]} One string per line, with each string in visual order.
+ *                               Each string has a matching array of style indices in the same order.
+ */
 function processStyledBidirectionalText(text, styleIndices, lineBreakPoints) {
     var nDataBytes = (text.length + 1) * 2;
     var stringInputPtr = Module._malloc(nDataBytes);
@@ -1198,7 +1236,7 @@ function processStyledBidirectionalText(text, styleIndices, lineBreakPoints) {
 
     var mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
 
-    var startIndex = 0;
+    var lineStartIndex = 0;
     var lines = [];
 
     for (var i$1 = 0, list = mergedParagraphLineBreakPoints; i$1 < list.length; i$1 += 1) {
@@ -1206,7 +1244,7 @@ function processStyledBidirectionalText(text, styleIndices, lineBreakPoints) {
 
         var lineText = "";
         var lineStyleIndices = [];
-        var runCount = Module.ccall('bidi_setLine', 'number', ['number', 'number'], [startIndex, lineBreakPoint]);
+        var runCount = Module.ccall('bidi_setLine', 'number', ['number', 'number'], [lineStartIndex, lineBreakPoint]);
 
         if (!runCount) {
             Module._free(stringInputPtr);
@@ -1218,8 +1256,8 @@ function processStyledBidirectionalText(text, styleIndices, lineBreakPoints) {
             var logicalLengthPtr = createInt32Ptr();
             var isReversed = Module.ccall('bidi_getVisualRun', 'number', ['number', 'number', 'number'], [i, logicalStartPtr, logicalLengthPtr]);
 
-            var logicalStart = startIndex + readInt32Ptr(logicalStartPtr);
-            var logicalLength = readInt32Ptr(logicalLengthPtr);
+            var logicalStart = lineStartIndex + consumeInt32Ptr(logicalStartPtr);
+            var logicalLength = consumeInt32Ptr(logicalLengthPtr);
             var logicalEnd = logicalStart + logicalLength;
             if (isReversed) {
                 // Within this reversed section, iterate logically backwards
@@ -1251,7 +1289,7 @@ function processStyledBidirectionalText(text, styleIndices, lineBreakPoints) {
         }
 
         lines.push([lineText, lineStyleIndices]);
-        startIndex = lineBreakPoint;
+        lineStartIndex = lineBreakPoint;
     }
 
     Module._free(stringInputPtr); // Input string must live until getLine calls are finished
