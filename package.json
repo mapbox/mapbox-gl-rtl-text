@@ -6,7 +6,7 @@
     "url": "git://github.com/mapbox/mapbox-gl-rtl-text.git",
     "type": "git"
   },
-  "version": "0.1.2",
+  "version": "0.2.0",
   "scripts": {
     "test": "tap test/*.js"
   },
