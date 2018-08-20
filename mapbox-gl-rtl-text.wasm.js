@@ -1,4 +1,13 @@
 (function(){
+(function (global, factory) {
+  if (typeof exports === 'object' && typeof module !== 'undefined') {
+    factory(module.exports)
+  } else if (typeof define === 'function' && define.amd) {
+    define(factory);
+  } else {
+    factory(global);
+  }
+}) (this, function (exports) {
 var Module = {
   TOTAL_MEMORY: 8*1024*1024,
   TOTAL_STACK: 2*1024*1024 ,
@@ -38,7 +47,16 @@ ENVIRONMENT_IS_WEB = typeof window === 'object';
 ENVIRONMENT_IS_WORKER = typeof importScripts === 'function';
 ENVIRONMENT_IS_NODE = typeof process === 'object' && typeof require === 'function' && !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_WORKER;
 ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
+var scriptDirectory = '';
+function locateFile(path) {
+    if (Module['locateFile']) {
+        return Module['locateFile'](path, scriptDirectory);
+    } else {
+        return scriptDirectory + path;
+    }
+}
 if (ENVIRONMENT_IS_NODE) {
+    scriptDirectory = __dirname + '/';
     var nodeFS;
     var nodePath;
     Module['read'] = function shell_read(filename, binary) {
@@ -104,6 +122,18 @@ if (ENVIRONMENT_IS_NODE) {
         };
     }
 } else if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
+    if (ENVIRONMENT_IS_WEB) {
+        if (document.currentScript) {
+            scriptDirectory = document.currentScript.src;
+        }
+    } else {
+        scriptDirectory = self.location.href;
+    }
+    if (scriptDirectory.indexOf('blob:') !== 0) {
+        scriptDirectory = scriptDirectory.substr(0, scriptDirectory.lastIndexOf('/') + 1);
+    } else {
+        scriptDirectory = '';
+    }
     Module['read'] = function shell_read(url) {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url, false);
@@ -181,7 +211,7 @@ var asm2wasmImports = {
 };
 var functionPointers = new Array(0);
 var GLOBAL_BASE = 1024;
-var ABORT = 0;
+var ABORT = false;
 var EXITSTATUS = 0;
 function assert_em(condition, text) {
     if (!condition) {
@@ -344,8 +374,10 @@ function stringToUTF8Array(str, outU8Array, outIdx, maxBytesToWrite) {
     var endIdx = outIdx + maxBytesToWrite - 1;
     for (var i = 0; i < str.length; ++i) {
         var u = str.charCodeAt(i);
-        if (u >= 55296 && u <= 57343)
-            u = 65536 + ((u & 1023) << 10) | str.charCodeAt(++i) & 1023;
+        if (u >= 55296 && u <= 57343) {
+            var u1 = str.charCodeAt(++i);
+            u = 65536 + ((u & 1023) << 10) | u1 & 1023;
+        }
         if (u <= 127) {
             if (outIdx >= endIdx)
                 break;
@@ -466,14 +498,10 @@ if (!Module['reallocBuffer'])
     Module['reallocBuffer'] = function (size) {
         var ret;
         try {
-            if (ArrayBuffer.transfer) {
-                ret = ArrayBuffer.transfer(buffer, size);
-            } else {
-                var oldHEAP8 = HEAP8;
-                ret = new ArrayBuffer(size);
-                var temp = new Int8Array(ret);
-                temp.set(oldHEAP8);
-            }
+            var oldHEAP8 = HEAP8;
+            ret = new ArrayBuffer(size);
+            var temp = new Int8Array(ret);
+            temp.set(oldHEAP8);
         } catch (e) {
             return false;
         }
@@ -639,16 +667,14 @@ function integrateWasmJS() {
     var wasmTextFile = 'wrapper.wasm.wast';
     var wasmBinaryFile = 'wrapper.wasm.wasm';
     var asmjsCodeFile = 'wrapper.wasm.temp.asm.js';
-    if (typeof Module['locateFile'] === 'function') {
-        if (!isDataURI(wasmTextFile)) {
-            wasmTextFile = Module['locateFile'](wasmTextFile);
-        }
-        if (!isDataURI(wasmBinaryFile)) {
-            wasmBinaryFile = Module['locateFile'](wasmBinaryFile);
-        }
-        if (!isDataURI(asmjsCodeFile)) {
-            asmjsCodeFile = Module['locateFile'](asmjsCodeFile);
-        }
+    if (!isDataURI(wasmTextFile)) {
+        wasmTextFile = locateFile(wasmTextFile);
+    }
+    if (!isDataURI(wasmBinaryFile)) {
+        wasmBinaryFile = locateFile(wasmBinaryFile);
+    }
+    if (!isDataURI(asmjsCodeFile)) {
+        asmjsCodeFile = locateFile(asmjsCodeFile);
     }
     var wasmPageSize = 64 * 1024;
     var info = {
@@ -680,7 +706,7 @@ function integrateWasmJS() {
             if (Module['readBinary']) {
                 return Module['readBinary'](wasmBinaryFile);
             } else {
-                throw 'on the web, we need the wasm binary to be preloaded and set on Module[\'wasmBinary\']. emcc.py will do that for you when generating HTML (but not JS)';
+                throw 'both async and sync fetching of the wasm failed';
             }
         } catch (err) {
             abort(err);
@@ -822,13 +848,13 @@ function integrateWasmJS() {
 }
 integrateWasmJS();
 STATIC_BASE = GLOBAL_BASE;
-STATICTOP = STATIC_BASE + 71792;
+STATICTOP = STATIC_BASE + 71904;
 __ATINIT__.push({
     func: function () {
         ___emscripten_environ_constructor();
     }
 });
-var STATIC_BUMP = 71792;
+var STATIC_BUMP = 71904;
 Module['STATIC_BASE'] = STATIC_BASE;
 Module['STATIC_BUMP'] = STATIC_BUMP;
 STATICTOP += 16;
@@ -1298,4 +1324,6 @@ function processStyledBidirectionalText(text, styleIndices, lineBreakPoints) {
 }
 
 self.registerRTLTextPlugin({'applyArabicShaping': applyArabicShaping, 'processBidirectionalText': processBidirectionalText, 'processStyledBidirectionalText': processStyledBidirectionalText});
+
+});
 })();
