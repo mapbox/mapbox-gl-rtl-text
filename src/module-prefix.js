@@ -1,3 +1,12 @@
+(function (global, factory) {
+  if (typeof exports === 'object' && typeof module !== 'undefined') {
+    factory(module.exports)
+  } else if (typeof define === 'function' && define.amd) {
+    define(factory);
+  } else {
+    factory(global);
+  }
+}) (this, function (exports) {
 var Module = {
   TOTAL_MEMORY: 8*1024*1024,
   TOTAL_STACK: 2*1024*1024 ,
