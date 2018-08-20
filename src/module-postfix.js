@@ -1,3 +1,5 @@
-module.exports.applyArabicShaping = applyArabicShaping;
-module.exports.processBidirectionalText = processBidirectionalText;
-module.exports.processStyledBidirectionalText = processStyledBidirectionalText;
+exports.applyArabicShaping = applyArabicShaping;
+exports.processBidirectionalText = processBidirectionalText;
+exports.processStyledBidirectionalText = processStyledBidirectionalText;
+
+});
