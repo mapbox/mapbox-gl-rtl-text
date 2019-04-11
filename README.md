@@ -2,9 +2,11 @@
 
 [![Build Status](https://circleci.com/gh/mapbox/mapbox-gl-rtl-text.svg?style=shield)](https://circleci.com/gh/mapbox/mapbox-gl-rtl-text)
 
-An [Emscripten](https://github.com/kripken/emscripten) port of a subset of the functionality of [International Components for Unicode (ICU)](http://site.icu-project.org/) necessary for [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js) to support [right to left text rendering](https://github.com/mapbox/mapbox-gl/issues/4). Support languages that use the Arabic script along with scripts that render right-to-left but don't require special character shaping (e.g. Hebrew).
+An [Emscripten](https://github.com/kripken/emscripten) port of a subset of the functionality of [International Components for Unicode (ICU)](http://site.icu-project.org/) necessary for [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js) to support [right to left text rendering](https://github.com/mapbox/mapbox-gl/issues/4). Supports the Arabic and Hebrew languages, which are written right-to-left. Mapbox Studio loads this plugin by default.
 
 **Requires [mapbox-gl-js](https://github.com/mapbox/mapbox-gl-js) (version 0.32.1 and up).**
+
+The [`mapbox-gl-language`](https://github.com/mapbox/mapbox-gl-language/) plugin, which automatically localizes labels into Arabic, is another option for supporting right-to-left text.
 
 ## Using mapbox-gl-rtl-text
 
@@ -21,14 +23,12 @@ Takes an input string with characters in "logical order", along with a set of ch
     setRTLTextPlugin('mapbox-gl-rtl-text.js');
 
  You can use ICU JS directly:
-
+```
     var rtlText = require('mapbox-gl-rtl-text');
     var arabicString = "سلام";
     var shapedArabicText = rtlText.applyArabicShaping(arabicString);
     var readyForDisplay = rtlText.processBidirectionalText(shapedArabicText, []);
-
-Studio's preview does not yet support RTL text.
-
+```
 ## Building mapbox-gl-rtl-text
 
 Running `build.sh` will:
@@ -53,4 +53,4 @@ Running `npm test` will run unit tests in `test/*.test.js`. Use `npm test -- --c
  - `aws s3 cp --acl public-read --content-type application/javascript mapbox-gl-rtl-text.js.min s3://mapbox-gl-js/plugins/mapbox-gl-rtl-text/v$(node --print --eval "require('./package.json').version")/mapbox-gl-rtl-text.js`
 
 ## Experimental Web Assembly support
-`make all` will now build a second version of the plugin built using Web Assembly. Once wasm support is widespread, the technology promises smaller package sizes and faster load times. The output file `mapbox-gl-rtl-text.wasm.js` will try to locally load a `wrapper.wasm.wasm`. To test the wasm version of the plugin, you need to somehow host `wrapper.wasm` and modify the javascript wrapper to pick it up.
+`make all` will now build a second version of the plugin built using Web Assembly. Once wasm support is widespread, the technology promises smaller package sizes and faster load times. The output file `mapbox-gl-rtl-text.wasm.js` will try to locally load a `wrapper.wasm.wasm`. To test the wasm version of the plugin, you need to somehow host `wrapper.wasm` and modify the JavaScript wrapper to pick it up.
