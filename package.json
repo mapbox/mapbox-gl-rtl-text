@@ -6,7 +6,7 @@
     "url": "git://github.com/mapbox/mapbox-gl-rtl-text.git",
     "type": "git"
   },
-  "version": "0.2.1",
+  "version": "0.2.2",
   "scripts": {
     "test": "tap test/*.js"
   },
@@ -23,7 +23,7 @@
   },
   "peerDependencies": {
     "mapbox-gl": ">=0.32.1 <2.0.0"
- },
+  },
   "main": "index.js",
   "description": "Add support for RTL languages to mapbox-gl-js."
 }
