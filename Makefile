@@ -8,7 +8,7 @@ ifeq ($(UNAME_S),Darwin)
    IN_PLACE = "-i '.bak'"
 endif
 
-all: index.js mapbox-gl-rtl-text.js mapbox-gl-rtl-text.js.min mapbox-gl-rtl-text.wasm.js mapbox-gl-rtl-text.wasm.js.min
+all: index.js mapbox-gl-rtl-text.js mapbox-gl-rtl-text.min.js mapbox-gl-rtl-text.wasm.js mapbox-gl-rtl-text.wasm.min.js
 
 build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	mkdir -p build
@@ -69,19 +69,16 @@ build/ubidi_wrapper.o: src/ubidi_wrapper.c
 build/icu.js: src/icu.js
 	node_modules/.bin/buble src/icu.js -y dangerousForOf > build/icu.js
 
-index.js.min: index.js
-	node_modules/.bin/uglifyjs index.js > index.js.min
-
 index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/module-postfix.js
 	echo "(function(){" > index.js
 	cat src/module-prefix.js build/wrapper_unassert.js build/icu.js src/module-postfix.js >> index.js
 	echo "})();" >> index.js
 
-mapbox-gl-rtl-text.js.min: mapbox-gl-rtl-text.js
-	node_modules/.bin/uglifyjs mapbox-gl-rtl-text.js > mapbox-gl-rtl-text.js.min
+mapbox-gl-rtl-text.min.js: mapbox-gl-rtl-text.js
+	node_modules/.bin/uglifyjs mapbox-gl-rtl-text.js > mapbox-gl-rtl-text.min.js
 
-mapbox-gl-rtl-text.wasm.js.min: mapbox-gl-rtl-text.wasm.js
-	node_modules/.bin/uglifyjs mapbox-gl-rtl-text.wasm.js > mapbox-gl-rtl-text.wasm.js.min
+mapbox-gl-rtl-text.wasm.min.js: mapbox-gl-rtl-text.wasm.js
+	node_modules/.bin/uglifyjs mapbox-gl-rtl-text.wasm.js > mapbox-gl-rtl-text.wasm.min.js
 
 mapbox-gl-rtl-text.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/plugin-postfix.js
 		echo "(function(){" > mapbox-gl-rtl-text.js
