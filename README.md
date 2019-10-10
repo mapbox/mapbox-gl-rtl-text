@@ -50,7 +50,9 @@ Running `npm test` will run unit tests in `test/*.test.js`. Use `npm test -- --c
  - `npm test`
  - `npm version {patch|minor|major}`
  - `git push --follow-tags`
+ - `mbx env`
  - `aws s3 cp --acl public-read --content-type application/javascript mapbox-gl-rtl-text.min.js s3://mapbox-gl-js/plugins/mapbox-gl-rtl-text/v$(node --print --eval "require('./package.json').version")/mapbox-gl-rtl-text.js`
+ - `mbx npm publish`
 
 ## Experimental Web Assembly support
 `make all` will now build a second version of the plugin built using Web Assembly. Once wasm support is widespread, the technology promises smaller package sizes and faster load times. The output file `mapbox-gl-rtl-text.wasm.js` will try to locally load a `wrapper.wasm.wasm`. To test the wasm version of the plugin, you need to somehow host `wrapper.wasm` and modify the JavaScript wrapper to pick it up.
