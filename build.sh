@@ -18,7 +18,11 @@ function download_and_extract {
 
 function setup_emsdk {
 	download_and_extract \
-        https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz \
+				# This is an unclaimed (and potentially malicious) bucket
+				# https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz \
+				# Download the current version of SDK from https://github.com/emscripten-core/emsdk/
+				# As part of re-enabling the build script, verify the package you intend to download
+				# and update the hash.
         emsdk-portable.tgz \
         5524019776723b42ce731f20d9dff91be63c8f50
 
