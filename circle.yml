@@ -19,7 +19,7 @@ jobs:
               command: npm install
           - run:
               name: Update server packages
-              command: apt-get dist-upgrade
+              command: apt-get update && apt-get install libgnutls-openssl27
           - run:
               name: Build Emscripten-based ICU; Build mapbox-gl-rtl-text.min.js
               command: ./build.sh
