@@ -18,7 +18,7 @@ function download_and_extract {
 
 function setup_emsdk {
 	download_and_extract \
-        https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz \
+        # https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz \
         emsdk-portable.tgz \
         5524019776723b42ce731f20d9dff91be63c8f50
 
