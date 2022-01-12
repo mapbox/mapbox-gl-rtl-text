@@ -1,8 +1,8 @@
 {
   "extends": "mourner",
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "parserOptions": {
-    "sourceType": "script",
+    "sourceType": "script"
   },
   "plugins": [
     "flowtype"
