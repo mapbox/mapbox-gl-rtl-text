@@ -18,21 +18,21 @@ function download_and_extract {
 
 function setup_emsdk {
 	download_and_extract \
-        https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz \
-        emsdk-portable.tgz \
-        5524019776723b42ce731f20d9dff91be63c8f50
+        https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.1.tar.gz \
+        emsdk-3.1.1.tgz \
+        95e7820a677ffecc8bf8c09e2f6c95897be6054d
 
-	emsdk-portable/emsdk update
-	emsdk-portable/emsdk install latest
-	emsdk-portable/emsdk activate latest
-	source emsdk-portable/emsdk_env.sh
+	emsdk-3.1.1/emsdk update
+	emsdk-3.1.1/emsdk install latest
+	emsdk-3.1.1/emsdk activate latest
+	source emsdk-3.1.1/emsdk_env.sh
 }
 
 function fetch_icu {
 	download_and_extract \
-        http://download.icu-project.org/files/icu4c/62.1/icu4c-62_1-src.tgz \
-        icu62_1.tgz \
-        8a216e755cddd169b9ec8cc7edeed38824900f06
+        https://github.com/unicode-org/icu/releases/download/release-70-1/icu4c-70_1-src.tgz \
+        icu70_1.tgz \
+        af70e4be0aa5204f1f3623464b1089d6ff77bf5f
         cp -R icu icu-llvm
 }
 
@@ -58,7 +58,7 @@ export CXXFLAGS="${CFLAGS:-} -fvisibility-inlines-hidden ${STDLIB} -std=c++11"
 # NOTE: OSX needs '-stdlib=libc++ -std=c++11' in both CXXFLAGS and LDFLAGS
 # to correctly target c++11 for build systems that don't know about it yet (like libgeos 3.4.2)
 # But because LDFLAGS is also for C libs we can only put these flags into LDFLAGS per package
-#export LDFLAGS="-Wl,-search_paths_first ${SYSROOT_FLAGS}"
+# export LDFLAGS="-Wl,-search_paths_first ${SYSROOT_FLAGS}"
 
 function build_icu_tools {
 	BUILD_PREFIX="${ICU_TOOLS_ROOT}/.build"
@@ -90,7 +90,6 @@ function build_icu_tools {
     --disable-icuio \
     --disable-samples \
     --disable-dyload || cat config.log
-
 
     # Must do make clean after configure to clear out object files left over from previous build on different architecture
     make clean
