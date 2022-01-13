@@ -1,29 +1,74 @@
 {
-  "extends": "mourner",
+  "extends": [
+    "mourner",
+    "plugin:import/recommended"
+  ],
   "parser": "@babel/eslint-parser",
   "parserOptions": {
-    "sourceType": "script"
+    "sourceType": "module",
+    "requireConfigFile": false
   },
   "plugins": [
-    "flowtype"
+    "import"
   ],
   "rules": {
+    "import/no-duplicates": "error",
+
+    // ensure compatibility with Node's native ESM
+    "import/extensions": ["error", {
+      "js": "always",
+      "json": "always"
+    }],
+
+    // temporarily disabled for easier upgrading of dependencies
+    "no-use-before-define": "off",
+    "implicit-arrow-linebreak": "off",
+    "arrow-parens": "off",
+    "arrow-body-style": "off",
+    "no-confusing-arrow": "off",
+    "no-control-regex": "off",
+    "no-invalid-this": "off",
+    "no-prototype-builtins": "off",
+    "accessor-pairs": "off",
+    "require-atomic-updates": "off",
+
     "array-bracket-spacing": "off",
-    "block-scoped-var": "error",
     "consistent-return": "off",
     "global-require": "off",
+    "import/no-commonjs": "error",
     "key-spacing": "off",
     "no-eq-null": "off",
+    "no-lonely-if": "off",
     "no-new": "off",
-    "no-var": "error",
+    "no-unused-vars": ["error", {"argsIgnorePattern": "^_$"}],
     "no-warning-comments": "error",
-    "object-curly-spacing": "off",
+    "object-curly-spacing": ["error", "never"],
     "prefer-arrow-callback": "error",
-    "prefer-const": "error",
+    "prefer-const": ["error", {"destructuring": "all"}],
     "prefer-template": "error",
     "quotes": "off",
     "space-before-function-paren": "off",
-    "template-curly-spacing": "error"
+    "template-curly-spacing": "error",
+    "no-useless-escape": "off",
+    "indent": ["error", 4, {
+      "flatTernaryExpressions": true,
+      "CallExpression": {
+        "arguments": "off"
+      },
+      "FunctionDeclaration": {
+        "parameters": "off"
+      },
+      "FunctionExpression": {
+        "parameters": "off"
+      }
+    }],
+    "no-multiple-empty-lines": [ "error", {
+        "max": 1
+    }]
+  },
+  "globals": {
+    "performance": true,
+    "Module": true
   },
   "env": {
     "es6": true,
