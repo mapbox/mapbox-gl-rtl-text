@@ -1,6 +1,5 @@
 'use strict';
 
-
 /**
  * Takes logical input and replaces Arabic characters with the "presentation form"
  * of their initial/medial/final forms, based on their order in the input.

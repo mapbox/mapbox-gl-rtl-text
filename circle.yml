@@ -1,28 +1,86 @@
-version: 2
+version: 2.1
 
-# ------------------------------------------------------------------------------
-# mbgl/ci:{version}-rtl-text is built from the Dockerfile at
-# https://github.com/mapbox/mbgl-ci-images/rtl-text
-# The base image sets up the build environment and has a (probably stale)
-# clone of https://github.com/mapbox/mapbox-gl-rtl-text
-# At build time, we sync the latest version of the repo and update npm
-# packages.
+workflows:
+  version: 2
+  default:
+    jobs:
+      - prepare:
+          filters:
+            tags:
+              only: /.*/
+      - lint:
+          requires:
+            - prepare
+          filters:
+            tags:
+              only: /.*/
+      - build:
+          requires:
+            - prepare
+          filters:
+            tags:
+              only: /.*/
+      - test:
+          requires:
+            - prepare
+          filters:
+            tags:
+              only: /.*/
+
+defaults: &defaults
+  docker:
+    - image: cimg/node:14.17
+  working_directory: ~/mapbox-gl-rtl-text
+
 jobs:
-    build:
-        docker:
-          - image: mbgl/ci:r2-rtl-text
-        working_directory: /src
-        steps:
-          - checkout
-          - run:
-              name: Update NPM packages
-              command: npm install
-          - run:
-              name: Build Emscripten-based ICU; Build mapbox-gl-rtl-text.min.js
-              command: ./build.sh
-          - run:
-              name: Test Arabic
-              command: npm test
-          - store_artifacts:
-              path: mapbox-gl-rtl-text.min.js
-              destination: .
+  prepare:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-npm-{{ checksum "package-lock.json" }}
+      - run: npm install
+      - save_cache:
+          key: v1-npm-{{ checksum "package-lock.json" }}
+          paths:
+            - 'node_modules'
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mapbox-gl-rtl-text
+            - .ssh
+#   lint:
+#     <<: *defaults
+#     steps:
+#       - attach_workspace:
+#           at: ~/
+#       - restore_cache:
+#           keys:
+#             - v2-lint-{{ .Branch }}
+#             - v2-lint
+#       - run: npm run lint
+#       - save_cache:
+#           key: v2-lint-{{ .Branch }}-{{ .Revision }}
+#           paths:
+#             - '.eslintcache'
+
+  build:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run: ./build.sh
+      - store_artifacts:
+          path: "build"
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - mapbox-gl-rtl-text/build
+
+  test:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run: npm test
