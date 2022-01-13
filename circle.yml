@@ -22,7 +22,7 @@ workflows:
               only: /.*/
       - test:
           requires:
-            - prepare
+            - build
           filters:
             tags:
               only: /.*/
@@ -77,6 +77,10 @@ jobs:
           root: ~/
           paths:
             - mapbox-gl-rtl-text/build
+            - mapbox-gl-rtl-text/mapbox-gl-rtl-text.js
+            - mapbox-gl-rtl-text/mapbox-gl-rtl-text.min.js
+            - mapbox-gl-rtl-text/mapbox-gl-rtl-text.wasm.js
+            - mapbox-gl-rtl-text/mapbox-gl-rtl-text.wasm.min.js
 
   test:
     <<: *defaults
