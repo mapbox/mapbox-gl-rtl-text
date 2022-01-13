@@ -72,7 +72,13 @@ jobs:
           at: ~/
       - run: ./build.sh
       - store_artifacts:
-          path: "build"
+          paths: 
+            - "build"
+            - mapbox-gl-rtl-text.js
+            - mapbox-gl-rtl-text.min.js
+            - mapbox-gl-rtl-text.wasm.js
+            - mapbox-gl-rtl-text.wasm.min.js
+            - index.js
       - persist_to_workspace:
           root: ~/
           paths:
@@ -81,6 +87,7 @@ jobs:
             - mapbox-gl-rtl-text/mapbox-gl-rtl-text.min.js
             - mapbox-gl-rtl-text/mapbox-gl-rtl-text.wasm.js
             - mapbox-gl-rtl-text/mapbox-gl-rtl-text.wasm.min.js
+            - mapbox-gl-rtl-text/index.js
 
   test:
     <<: *defaults
