@@ -1,9 +1,10 @@
 .DS_Store
 *~
-/emsdk-portable
+/emsdk-3.1.1
 /icu
 /icu-llvm
 *.tgz
 /node_modules
 /build
 /.nyc_output
+.eslintcache
