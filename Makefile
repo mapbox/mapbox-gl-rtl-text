@@ -13,13 +13,13 @@ all: index.js mapbox-gl-rtl-text.js mapbox-gl-rtl-text.min.js mapbox-gl-rtl-text
 build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	mkdir -p build
 	emcc -Oz -v -o build/wrapper.js build/ushape_wrapper.o build/ubidi_wrapper.o icu-llvm/source/lib/libicuuc.a \
-	    -s EXPORTED_FUNCTIONS="['_ushape_arabic','_bidi_processText','_bidi_getLine','_bidi_getParagraphEndIndex','_bidi_setLine','_bidi_writeReverse','_bidi_getVisualRun']" \
+	    -s EXPORTED_FUNCTIONS="['_ushape_arabic','_bidi_processText','_bidi_getLine','_bidi_getParagraphEndIndex','_bidi_setLine','_bidi_writeReverse','_bidi_getVisualRun','_malloc','_free']" \
 	    -s NO_EXIT_RUNTIME="1" \
 	    -s DEAD_FUNCTIONS="[]" \
 	    -s NO_FILESYSTEM="1" \
 	    -s INLINING_LIMIT="1" \
 		-s ALLOW_MEMORY_GROWTH="1" \
-	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall','_malloc','_free']" \
+	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall']" \
 		--llvm-lto 3 \
 		--memory-init-file 0 \
 		--closure 0
@@ -27,13 +27,13 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 build/wrapper.wasm.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	mkdir -p build
 	emcc -Oz -v -o build/wrapper.wasm.js build/ushape_wrapper.o build/ubidi_wrapper.o icu-llvm/source/lib/libicuuc.a \
-	    -s EXPORTED_FUNCTIONS="['_ushape_arabic','_bidi_processText','_bidi_getLine','_bidi_getParagraphEndIndex','_bidi_setLine','_bidi_writeReverse','_bidi_getVisualRun']" \
+	    -s EXPORTED_FUNCTIONS="['_ushape_arabic','_bidi_processText','_bidi_getLine','_bidi_getParagraphEndIndex','_bidi_setLine','_bidi_writeReverse','_bidi_getVisualRun','_malloc','_free']" \
 	    -s NO_EXIT_RUNTIME="1" \
 	    -s DEAD_FUNCTIONS="[]" \
 	    -s NO_FILESYSTEM="1" \
 	    -s INLINING_LIMIT="1" \
 		-s ALLOW_MEMORY_GROWTH="1" \
-	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall','_malloc','_free']" \
+	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall']" \
 	    --llvm-lto 3 \
 		--memory-init-file 0 \
 		--closure 0

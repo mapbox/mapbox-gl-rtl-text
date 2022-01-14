@@ -512,7 +512,7 @@ function createWasm() {
         Module['asm'] = exports;
         wasmMemory = Module['asm']['c'];
         updateGlobalBufferAndViews(wasmMemory.buffer);
-        wasmTable = Module['asm']['l'];
+        wasmTable = Module['asm']['n'];
         addOnInit(Module['asm']['d']);
         removeRunDependency('wasm-instantiate');
     }
@@ -618,32 +618,38 @@ var ___wasm_call_ctors = Module['___wasm_call_ctors'] = function () {
 var _ushape_arabic = Module['_ushape_arabic'] = function () {
     return (_ushape_arabic = Module['_ushape_arabic'] = Module['asm']['e']).apply(null, arguments);
 };
+var _malloc = Module['_malloc'] = function () {
+    return (_malloc = Module['_malloc'] = Module['asm']['f']).apply(null, arguments);
+};
+var _free = Module['_free'] = function () {
+    return (_free = Module['_free'] = Module['asm']['g']).apply(null, arguments);
+};
 var _bidi_processText = Module['_bidi_processText'] = function () {
-    return (_bidi_processText = Module['_bidi_processText'] = Module['asm']['f']).apply(null, arguments);
+    return (_bidi_processText = Module['_bidi_processText'] = Module['asm']['h']).apply(null, arguments);
 };
 var _bidi_getParagraphEndIndex = Module['_bidi_getParagraphEndIndex'] = function () {
-    return (_bidi_getParagraphEndIndex = Module['_bidi_getParagraphEndIndex'] = Module['asm']['g']).apply(null, arguments);
+    return (_bidi_getParagraphEndIndex = Module['_bidi_getParagraphEndIndex'] = Module['asm']['i']).apply(null, arguments);
 };
 var _bidi_getVisualRun = Module['_bidi_getVisualRun'] = function () {
-    return (_bidi_getVisualRun = Module['_bidi_getVisualRun'] = Module['asm']['h']).apply(null, arguments);
+    return (_bidi_getVisualRun = Module['_bidi_getVisualRun'] = Module['asm']['j']).apply(null, arguments);
 };
 var _bidi_setLine = Module['_bidi_setLine'] = function () {
-    return (_bidi_setLine = Module['_bidi_setLine'] = Module['asm']['i']).apply(null, arguments);
+    return (_bidi_setLine = Module['_bidi_setLine'] = Module['asm']['k']).apply(null, arguments);
 };
 var _bidi_writeReverse = Module['_bidi_writeReverse'] = function () {
-    return (_bidi_writeReverse = Module['_bidi_writeReverse'] = Module['asm']['j']).apply(null, arguments);
+    return (_bidi_writeReverse = Module['_bidi_writeReverse'] = Module['asm']['l']).apply(null, arguments);
 };
 var _bidi_getLine = Module['_bidi_getLine'] = function () {
-    return (_bidi_getLine = Module['_bidi_getLine'] = Module['asm']['k']).apply(null, arguments);
+    return (_bidi_getLine = Module['_bidi_getLine'] = Module['asm']['m']).apply(null, arguments);
 };
 var stackSave = Module['stackSave'] = function () {
-    return (stackSave = Module['stackSave'] = Module['asm']['m']).apply(null, arguments);
+    return (stackSave = Module['stackSave'] = Module['asm']['o']).apply(null, arguments);
 };
 var stackRestore = Module['stackRestore'] = function () {
-    return (stackRestore = Module['stackRestore'] = Module['asm']['n']).apply(null, arguments);
+    return (stackRestore = Module['stackRestore'] = Module['asm']['p']).apply(null, arguments);
 };
 var stackAlloc = Module['stackAlloc'] = function () {
-    return (stackAlloc = Module['stackAlloc'] = Module['asm']['o']).apply(null, arguments);
+    return (stackAlloc = Module['stackAlloc'] = Module['asm']['q']).apply(null, arguments);
 };
 Module['ccall'] = ccall;
 Module['UTF16ToString'] = UTF16ToString;
@@ -703,7 +709,6 @@ if (Module['preInit']) {
 }
 run();
 'use strict';
-
 
 /**
  * Takes logical input and replaces Arabic characters with the "presentation form"
