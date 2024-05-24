@@ -8,7 +8,7 @@
   }
 }) (this, function (exports) {
 var Module = {
-  TOTAL_MEMORY: 8*1024*1024,
+  INITIAL_MEMORY: 8*1024*1024,
   TOTAL_STACK: 2*1024*1024 ,
   preRun: [],
   postRun: [],

@@ -1,7 +1,6 @@
 version: 2.1
 
 workflows:
-  version: 2
   default:
     jobs:
       - prepare:
@@ -29,7 +28,7 @@ workflows:
 
 defaults: &defaults
   docker:
-    - image: cimg/node:14.17
+    - image: cimg/node:lts
   working_directory: ~/mapbox-gl-rtl-text
 
 jobs:
@@ -40,7 +39,7 @@ jobs:
       - restore_cache:
           keys:
             - v1-npm-{{ checksum "package-lock.json" }}
-      - run: npm install
+      - run: npm ci
       - save_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
           paths:

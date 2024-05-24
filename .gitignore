@@ -1,9 +1,11 @@
 .DS_Store
+.tap/
 *~
-/emsdk-3.1.1
+/emsdk-3.1.60
 /icu
 /icu-llvm
 *.tgz
+*.tar.gz
 /node_modules
 /build
 /.nyc_output

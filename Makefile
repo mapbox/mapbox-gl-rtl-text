@@ -18,11 +18,13 @@ build/wrapper.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	    -s DEAD_FUNCTIONS="[]" \
 	    -s NO_FILESYSTEM="1" \
 	    -s INLINING_LIMIT="1" \
-		-s ALLOW_MEMORY_GROWTH="1" \
+		  -s ALLOW_MEMORY_GROWTH="1" \
+      -s USE_ICU="1" \
+      -s IMPORTED_MEMORY \
+      -s WASM=0 \
+      -s WASM_ASYNC_COMPILATION=0 \
 	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall']" \
-		--llvm-lto 3 \
-		--memory-init-file 0 \
-		--closure 0
+		  --closure 0
 
 build/wrapper.wasm.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	mkdir -p build
@@ -32,29 +34,18 @@ build/wrapper.wasm.js: build/ushape_wrapper.o build/ubidi_wrapper.o
 	    -s DEAD_FUNCTIONS="[]" \
 	    -s NO_FILESYSTEM="1" \
 	    -s INLINING_LIMIT="1" \
-		-s ALLOW_MEMORY_GROWTH="1" \
+		  -s ALLOW_MEMORY_GROWTH="1" \
+      -s USE_ICU="1" \
+      -s IMPORTED_MEMORY \
 	    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','ccall']" \
-	    --llvm-lto 3 \
-		--memory-init-file 0 \
-		--closure 0
+		  --closure 0
 	cp build/wrapper.wasm.wasm ./wrapper.wasm
 
-# Using --memory-init-file 1 speeds up parsing, but requires asynchronously fetching the data. Also requires -s NO_BROWSER="0"
 #--closure 1 \ # Using Closure compiler might be able to prevent non-exported functions from being included at all
 
 # Build byte code instead of javascript, and then run it in an interpreter to avoid slow load time
 # -s EMTERPRETIFY="1" \
 # -s 'EMTERPRETIFY_FILE="data.binary"' \
-
-# Even though we're building with -Oz which defaults the EMCC "ASSERTIONS" flag to 0, the emscripten runtime still includes some assertions
-# that need stripping
-build/wrapper_unassert.js: build/wrapper.js
-	node_modules/.bin/unassert build/wrapper.js > build/wrapper_unassert.js
-	sed ${IN_PLACE} 's/assert/assert_em/g' build/wrapper_unassert.js
-
-build/wrapper_unassert.wasm.js: build/wrapper.wasm.js
-	node_modules/.bin/unassert build/wrapper.wasm.js > build/wrapper_unassert.wasm.js
-	sed ${IN_PLACE} 's/assert/assert_em/g' build/wrapper_unassert.wasm.js
 
 build/ushape_wrapper.o: src/ushape_wrapper.c
 	mkdir -p build
@@ -67,9 +58,9 @@ build/ubidi_wrapper.o: src/ubidi_wrapper.c
 build/icu.js: src/icu.js
 	cp src/icu.js build/icu.js
 
-index.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/module-postfix.js
+index.js: build/wrapper.js build/icu.js src/module-prefix.js src/module-postfix.js
 	echo "(function(){" > index.js
-	cat src/module-prefix.js build/wrapper_unassert.js build/icu.js src/module-postfix.js >> index.js
+	cat src/module-prefix.js build/wrapper.js build/icu.js src/module-postfix.js >> index.js
 	echo "})();" >> index.js
 
 mapbox-gl-rtl-text.min.js: mapbox-gl-rtl-text.js
@@ -78,14 +69,14 @@ mapbox-gl-rtl-text.min.js: mapbox-gl-rtl-text.js
 mapbox-gl-rtl-text.wasm.min.js: mapbox-gl-rtl-text.wasm.js
 	node_modules/.bin/uglifyjs mapbox-gl-rtl-text.wasm.js > mapbox-gl-rtl-text.wasm.min.js
 
-mapbox-gl-rtl-text.js: build/wrapper_unassert.js build/icu.js src/module-prefix.js src/plugin-postfix.js
+mapbox-gl-rtl-text.js: build/wrapper.js build/icu.js src/module-prefix.js src/plugin-postfix.js
 		echo "(function(){" > mapbox-gl-rtl-text.js
-		cat src/module-prefix.js build/wrapper_unassert.js build/icu.js src/plugin-postfix.js >> mapbox-gl-rtl-text.js
+		cat src/module-prefix.js build/wrapper.js build/icu.js src/plugin-postfix.js >> mapbox-gl-rtl-text.js
 		echo "})();" >> mapbox-gl-rtl-text.js
 
-mapbox-gl-rtl-text.wasm.js: build/wrapper_unassert.wasm.js build/icu.js src/module-prefix.wasm.js src/plugin-postfix.js
+mapbox-gl-rtl-text.wasm.js: build/wrapper.wasm.js build/icu.js src/module-prefix.wasm.js src/plugin-postfix.js
 		echo "(function(){" > mapbox-gl-rtl-text.wasm.js
-		cat src/module-prefix.js build/wrapper_unassert.wasm.js build/icu.js src/plugin-postfix.js >> mapbox-gl-rtl-text.wasm.js
+		cat src/module-prefix.js build/wrapper.js build/icu.js src/plugin-postfix.js >> mapbox-gl-rtl-text.wasm.js
 		echo "})();" >> mapbox-gl-rtl-text.wasm.js
 
 clean:
