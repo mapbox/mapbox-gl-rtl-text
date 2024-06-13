@@ -1,9 +1,4 @@
 .DS_Store
-*~
-/emsdk-portable
-/icu
-/icu-llvm
-*.tgz
+
+/dist
 /node_modules
-/build
-/.nyc_output

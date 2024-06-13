@@ -1,26 +1,43 @@
 {
   "name": "@mapbox/mapbox-gl-rtl-text",
+  "version": "0.3.0",
+  "description": "Add support for RTL languages to mapbox-gl-js.",
   "license": "BSD-2-Clause",
   "author": "Mapbox",
   "repository": {
     "url": "git://github.com/mapbox/mapbox-gl-rtl-text.git",
     "type": "git"
   },
-  "version": "0.2.3",
+  "type": "module",
+  "sideEffects": false,
+  "module": "src/index.js",
+  "exports": "./src/index.js",
+  "main": "./dist/mapbox-gl-rtl-text.js",
   "scripts": {
-    "test": "tap test/*.js"
+    "build:icu": "docker run --rm -it -v $(pwd):/src emscripten/emsdk:3.1.61 /src/build_icu.sh",
+    "build": "rollup -c",
+    "start": "npm run build && vite --config vite.config.js .",
+    "lint": "eslint src/index.js test.js",
+    "test": "node --test"
   },
   "devDependencies": {
-    "eslint-config-mourner": "^2.0.0",
-    "eslint-plugin-flowtype": "^2.20.0",
-    "tap": "^5.7.0",
-    "babel-eslint": "^7.0.0",
-    "eslint-plugin-html": "^1.5.1",
-    "unassert-cli": "^0.1.0",
-    "eslint": "^3.9.0",
-    "buble": "^0.14.2",
-    "uglify-js": "^2.4.10"
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-wasm": "^6.2.2",
+    "eslint": "^8.57.0",
+    "eslint-config-mourner": "^3.0.0",
+    "mapbox-gl": "^3.4.0",
+    "rollup": "^4.18.0",
+    "vite": "^5.3.1"
   },
-  "main": "index.js",
-  "description": "Add support for RTL languages to mapbox-gl-js."
+  "eslintConfig": {
+    "extends": "mourner",
+    "parserOptions": {
+      "ecmaVersion": 2022
+    }
+  },
+  "files": [
+    "src",
+    "dist"
+  ]
 }
