@@ -6,7 +6,9 @@ An [Emscripten](https://github.com/kripken/emscripten) port of a subset of the f
 
 **Requires [mapbox-gl-js](https://github.com/mapbox/mapbox-gl-js) (version 0.32.1 and up).**
 
-A map that requires Arabic names should at a minimum install the `mapbox-gl-rtl-text` plugin. To display the actual place names, the map could use a specially modified style, manipulate the style at runtime, or install the [`mapbox-gl-language`](https://github.com/mapbox/mapbox-gl-language/) plugin for convenience. The `mapbox-gl-language` plugin displays Arabic name data (among other languages), while the `mapbox-gl-rtl-text` plugin adds support for displaying Arabic names. 
+A map that requires Arabic names should at a minimum install the `mapbox-gl-rtl-text` plugin. To display the actual place names, the map could use a specially modified style, manipulate the style at runtime, or install the [`mapbox-gl-language`](https://github.com/mapbox/mapbox-gl-language/) plugin for convenience. The `mapbox-gl-language` plugin displays Arabic name data (among other languages), while the `mapbox-gl-rtl-text` plugin adds support for displaying Arabic names.
+
+Although the [`mapbox-gl-language`](https://github.com/mapbox/mapbox-gl-language/#languages) plugin supports the Arabic language globally, Hebrew labels are only supported for areas where Hebrew is the local language. In the Mapbox Streets v8 tileset, the [`name_script`](https://docs.mapbox.com/vector-tiles/reference/mapbox-streets-v8/#name_script-text) field evaluates to `Hebrew` for geometries with [`name`](https://docs.mapbox.com/vector-tiles/reference/mapbox-streets-v8/#name-text--name_lang-code-text) fields in these areas. To display Hebrew place names where available, first [change the label language in Mapbox Studio](https://docs.mapbox.com/help/troubleshooting/change-language/#change-label-language-in-mapbox-studio) by setting the text field to `name`. Then, set up the map to use this style and the RTL plugin as shown in the [add support for right-to-left scripts example](https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-rtl-text/).
 
 ## Using mapbox-gl-rtl-text
 
