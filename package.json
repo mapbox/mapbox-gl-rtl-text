@@ -14,7 +14,7 @@
   "exports": "./src/index.js",
   "main": "./dist/mapbox-gl-rtl-text.js",
   "scripts": {
-    "build:icu": "docker run --rm -it -v $(pwd):/src emscripten/emsdk:3.1.61 /src/build_icu.sh",
+    "build:icu": "docker run --rm -it -v $(pwd):/src emscripten/emsdk:3.1.61-arm64 /src/build_icu.sh",
     "build": "rollup -c",
     "start": "npm run build && vite --config vite.config.js .",
     "lint": "eslint src/index.js test.js",
