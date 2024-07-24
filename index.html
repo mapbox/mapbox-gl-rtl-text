@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>Add support for right-to-left scripts</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id='map'></div>
+
+  <script type='module'>
+    import mapboxgl from 'mapbox-gl';
+    import 'mapbox-gl/dist/mapbox-gl.css';
+
+    mapboxgl.accessToken = import.meta.env.MAPBOX_ACCESS_TOKEN;
+
+    // https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js
+    mapboxgl.setRTLTextPlugin('./dist/mapbox-gl-rtl-text.js', null, false);
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [44.3763, 33.2788],
+      zoom: 11,
+      hash: true
+    });
+
+  </script>
+
+</body>
+
+</html>
