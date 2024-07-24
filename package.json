@@ -26,9 +26,9 @@
     "@rollup/plugin-wasm": "^6.2.2",
     "eslint": "^8.57.0",
     "eslint-config-mourner": "^3.0.0",
-    "mapbox-gl": "^3.4.0",
-    "rollup": "^4.18.0",
-    "vite": "^5.3.1"
+    "mapbox-gl": "^3.5.2",
+    "rollup": "^4.19.0",
+    "vite": "^5.3.4"
   },
   "eslintConfig": {
     "extends": "mourner",
