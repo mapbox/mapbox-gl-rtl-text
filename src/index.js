@@ -159,7 +159,7 @@ export default (async function () {
         const stringInputPtr = Module._malloc(nDataBytes);
         const paragraphCount = setParagraph(text, stringInputPtr, nDataBytes);
         if (!paragraphCount) {
-            return [{text, styleIndices}];
+            return [[text, styleIndices]];
         }
 
         const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
