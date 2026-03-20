@@ -1,32 +1,48 @@
-import icu from './icu.wasm.js';
+import initWasm from './icu.wasm';
 
 export default (async function () {
-    const Module = await icu();
+    const {instance} = await initWasm({
+        env: {
+            emscripten_resize_heap() { return 0; },
+            _abort_js() { throw new Error('abort'); },
+            _setitimer_js() {},
+            _emscripten_runtime_keepalive_clear() {},
+        },
+        wasi_snapshot_preview1: {
+            proc_exit() {},
+        }
+    });
 
-    const ushapeArabic        = Module._ushape_arabic;
-    const bidiProcessText     = Module._bidi_processText;
-    const bidiGetParagraphEnd = Module._bidi_getParagraphEndIndex;
-    const bidiSetLine         = Module._bidi_setLine;
-    const bidiGetVisualRun    = Module._bidi_getVisualRun;
-    const bidiWriteReverse    = Module._bidi_writeReverse;
+    instance.exports.__wasm_call_ctors();
+    const HEAPU8 = new Uint8Array(instance.exports.memory.buffer);
+
+    const {
+        ushapeArabic,
+        bidiProcessText,
+        bidiGetParagraphEndIndex: bidiGetParagraphEnd,
+        bidiSetLine,
+        bidiGetVisualRun,
+        bidiWriteReverse,
+        malloc: _malloc,
+        free:   _free,
+    } = instance.exports;
 
     const utf16Decoder = new TextDecoder('utf-16le');
 
     function readUTF16(ptr) {
-        const mem = Module.HEAPU8;
         let end = ptr;
-        while (mem[end] || mem[end + 1]) end += 2;
-        return utf16Decoder.decode(mem.subarray(ptr, end));
+        while (HEAPU8[end] || HEAPU8[end + 1]) end += 2;
+        return utf16Decoder.decode(HEAPU8.subarray(ptr, end));
     }
 
     function writeUTF16(str, ptr) {
-        const buf = new Uint16Array(Module.HEAPU8.buffer, ptr, str.length + 1);
+        const buf = new Uint16Array(HEAPU8.buffer, ptr, str.length + 1);
         for (let i = 0; i < str.length; i++) buf[i] = str.charCodeAt(i);
         buf[str.length] = 0;
     }
 
     function readInt32(ptr) {
-        return new Int32Array(Module.HEAPU8.buffer, ptr, 1)[0];
+        return new Int32Array(HEAPU8.buffer, ptr, 1)[0];
     }
 
     /**
@@ -43,16 +59,16 @@ export default (async function () {
             return input;
 
         const nDataBytes = (input.length + 1) * 2;
-        const stringInputPtr = Module._malloc(nDataBytes);
+        const stringInputPtr = _malloc(nDataBytes);
         writeUTF16(input, stringInputPtr);
         const returnStringPtr = ushapeArabic(stringInputPtr, input.length);
-        Module._free(stringInputPtr);
+        _free(stringInputPtr);
 
         if (returnStringPtr === 0)
             return input;
 
         const result = readUTF16(returnStringPtr);
-        Module._free(returnStringPtr);
+        _free(returnStringPtr);
 
         return result;
     }
@@ -83,11 +99,11 @@ export default (async function () {
     // Returns { stringInputPtr, paragraphCount } or null (frees memory on failure)
     function allocAndSetParagraph(input) {
         const nDataBytes = (input.length + 1) * 2;
-        const stringInputPtr = Module._malloc(nDataBytes);
+        const stringInputPtr = _malloc(nDataBytes);
         writeUTF16(input, stringInputPtr);
         const paragraphCount = bidiProcessText(stringInputPtr, input.length);
         if (paragraphCount === 0) {
-            Module._free(stringInputPtr);
+            _free(stringInputPtr);
             return null;
         }
         return {stringInputPtr, paragraphCount};
@@ -116,7 +132,7 @@ export default (async function () {
 
         let lineStartIndex = 0;
         const lines = [];
-        const outPtr = Module._malloc(8);
+        const outPtr = _malloc(8);
         const logicalStartPtr = outPtr;
         const logicalLengthPtr = outPtr + 4;
 
@@ -125,8 +141,8 @@ export default (async function () {
             const runCount = bidiSetLine(lineStartIndex, lineBreakPoint);
 
             if (!runCount) {
-                Module._free(outPtr);
-                Module._free(stringInputPtr);
+                _free(outPtr);
+                _free(stringInputPtr);
                 return [];
             }
 
@@ -138,12 +154,12 @@ export default (async function () {
                 if (isReversed) {
                     const returnStringPtr = bidiWriteReverse(stringInputPtr, logicalStart, logicalLength);
                     if (returnStringPtr === 0) {
-                        Module._free(outPtr);
-                        Module._free(stringInputPtr);
+                        _free(outPtr);
+                        _free(stringInputPtr);
                         return [];
                     }
                     lineText += readUTF16(returnStringPtr);
-                    Module._free(returnStringPtr);
+                    _free(returnStringPtr);
                 } else {
                     const chunk = input.substring(logicalStart, logicalStart + logicalLength);
                     // Strip BiDi control characters, matching UBIDI_REMOVE_BIDI_CONTROLS behavior
@@ -155,8 +171,8 @@ export default (async function () {
             lineStartIndex = lineBreakPoint;
         }
 
-        Module._free(outPtr);
-        Module._free(stringInputPtr);
+        _free(outPtr);
+        _free(stringInputPtr);
         return lines;
     }
 
@@ -189,7 +205,7 @@ export default (async function () {
         let lineStartIndex = 0;
         const lines = [];
 
-        const outPtr = Module._malloc(8);
+        const outPtr = _malloc(8);
         const logicalStartPtr = outPtr;
         const logicalLengthPtr = outPtr + 4;
 
@@ -199,8 +215,8 @@ export default (async function () {
             const runCount = bidiSetLine(lineStartIndex, lineBreakPoint);
 
             if (!runCount) {
-                Module._free(outPtr);
-                Module._free(stringInputPtr);
+                _free(outPtr);
+                _free(stringInputPtr);
                 return []; // TODO: throw exception?
             }
 
@@ -222,12 +238,12 @@ export default (async function () {
                             const returnStringPtr = bidiWriteReverse(stringInputPtr, styleRunEnd, styleRunStart - styleRunEnd);
 
                             if (returnStringPtr === 0) {
-                                Module._free(outPtr);
-                                Module._free(stringInputPtr);
+                                _free(outPtr);
+                                _free(stringInputPtr);
                                 return [];
                             }
                             const reversed = readUTF16(returnStringPtr);
-                            Module._free(returnStringPtr);
+                            _free(returnStringPtr);
 
                             lineText += reversed;
                             for (let k = 0; k < reversed.length; k++) {
@@ -248,8 +264,8 @@ export default (async function () {
             lineStartIndex = lineBreakPoint;
         }
 
-        Module._free(outPtr);
-        Module._free(stringInputPtr);
+        _free(outPtr);
+        _free(stringInputPtr);
 
         return lines;
     }

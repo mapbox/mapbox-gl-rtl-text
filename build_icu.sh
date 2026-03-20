@@ -14,19 +14,16 @@ mkdir -p build
 emcc -Oz -flto -s USE_ICU=1 -c ./src/ubidi_wrapper.c -o ./build/ubidi_wrapper.o
 emcc -Oz -flto -s USE_ICU=1 -c ./src/ushape_wrapper.c -o ./build/ushape_wrapper.o
 
-# Compile ICU wrapper to WebAssembly, embed all subresources as base64 string literals and export as a ES module
-emcc -Oz -flto -v -o ./src/icu.wasm.js ./build/ushape_wrapper.o ./build/ubidi_wrapper.o \
+# Compile ICU wrapper to WebAssembly; src/index.js provides the glue, so discard the generated JS.
+# Use -O1 (not -Oz) to prevent Emscripten from minifying WASM import/export names, then run
+# wasm-opt -Oz separately to still get full size optimization with readable names.
+emcc -O1 -flto -v -o ./src/icu.js ./build/ushape_wrapper.o ./build/ubidi_wrapper.o \
     -s USE_ICU=1 \
-    -s ALLOW_MEMORY_GROWTH=1 \
-    -s ENVIRONMENT='web,worker' \
-    -s EXPORT_ES6=1 \
     -s MALLOC=emmalloc \
-    -s EXPORTED_FUNCTIONS="['_ushape_arabic','_bidi_processText','_bidi_getParagraphEndIndex','_bidi_setLine','_bidi_writeReverse','_bidi_getVisualRun','_malloc','_free']" \
-    -s EXPORTED_RUNTIME_METHODS="['HEAPU8']" \
-    -s FILESYSTEM=0 \
-    -s MODULARIZE=1 \
-    -s SINGLE_FILE=1 \
-    --closure 1
+    -s EXPORTED_FUNCTIONS="['_ushapeArabic','_bidiProcessText','_bidiGetParagraphEndIndex','_bidiSetLine','_bidiWriteReverse','_bidiGetVisualRun','_malloc','_free']" \
+    -s FILESYSTEM=0
+rm ./src/icu.js
+wasm-opt -Oz --enable-bulk-memory ./src/icu.wasm -o ./src/icu.wasm
 
 # Cleanup build directory
 rm -rf build

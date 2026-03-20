@@ -3,7 +3,7 @@
 
 #include <unicode/ushape.h>
 
-UChar* ushape_arabic(const UChar* input, uint32_t input_length) {
+UChar* ushapeArabic(const UChar* input, uint32_t input_length) {
     UErrorCode errorCode = U_ZERO_ERROR;
 
     int32_t outputLength =
