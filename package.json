@@ -18,7 +18,8 @@
     "build": "rollup -c",
     "start": "npm run build && vite --config vite.config.js .",
     "pretest": "eslint src/index.js test.js",
-    "test": "node --import ./wasm-loader.js --test"
+    "test": "node --import ./wasm-loader.js --test",
+    "prepublishOnly": "npm test && npm run build"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
