@@ -1,15 +1,33 @@
-/* eslint-disable new-cap */
 import icu from './icu.wasm.js';
 
 export default (async function () {
     const Module = await icu();
 
-    const ushapeArabic         = Module.cwrap('ushape_arabic',             'number', ['number', 'number']);
-    const bidiProcessText      = Module.cwrap('bidi_processText',          'number', ['number', 'number']);
-    const bidiGetParagraphEnd  = Module.cwrap('bidi_getParagraphEndIndex', 'number', ['number']);
-    const bidiSetLine          = Module.cwrap('bidi_setLine',              'number', ['number', 'number']);
-    const bidiGetVisualRun     = Module.cwrap('bidi_getVisualRun',         'number', ['number', 'number', 'number']);
-    const bidiWriteReverse     = Module.cwrap('bidi_writeReverse',         'number', ['number', 'number', 'number']);
+    const ushapeArabic        = Module._ushape_arabic;
+    const bidiProcessText     = Module._bidi_processText;
+    const bidiGetParagraphEnd = Module._bidi_getParagraphEndIndex;
+    const bidiSetLine         = Module._bidi_setLine;
+    const bidiGetVisualRun    = Module._bidi_getVisualRun;
+    const bidiWriteReverse    = Module._bidi_writeReverse;
+
+    const utf16Decoder = new TextDecoder('utf-16le');
+
+    function readUTF16(ptr) {
+        const mem = Module.HEAPU8;
+        let end = ptr;
+        while (mem[end] || mem[end + 1]) end += 2;
+        return utf16Decoder.decode(mem.subarray(ptr, end));
+    }
+
+    function writeUTF16(str, ptr) {
+        const buf = new Uint16Array(Module.HEAPU8.buffer, ptr, str.length + 1);
+        for (let i = 0; i < str.length; i++) buf[i] = str.charCodeAt(i);
+        buf[str.length] = 0;
+    }
+
+    function readInt32(ptr) {
+        return new Int32Array(Module.HEAPU8.buffer, ptr, 1)[0];
+    }
 
     /**
      * Takes logical input and replaces Arabic characters with the "presentation form"
@@ -26,14 +44,14 @@ export default (async function () {
 
         const nDataBytes = (input.length + 1) * 2;
         const stringInputPtr = Module._malloc(nDataBytes);
-        Module.stringToUTF16(input, stringInputPtr, nDataBytes);
+        writeUTF16(input, stringInputPtr);
         const returnStringPtr = ushapeArabic(stringInputPtr, input.length);
         Module._free(stringInputPtr);
 
         if (returnStringPtr === 0)
             return input;
 
-        const result = Module.UTF16ToString(returnStringPtr);
+        const result = readUTF16(returnStringPtr);
         Module._free(returnStringPtr);
 
         return result;
@@ -66,7 +84,7 @@ export default (async function () {
     function allocAndSetParagraph(input) {
         const nDataBytes = (input.length + 1) * 2;
         const stringInputPtr = Module._malloc(nDataBytes);
-        Module.stringToUTF16(input, stringInputPtr, nDataBytes);
+        writeUTF16(input, stringInputPtr);
         const paragraphCount = bidiProcessText(stringInputPtr, input.length);
         if (paragraphCount === 0) {
             Module._free(stringInputPtr);
@@ -98,33 +116,33 @@ export default (async function () {
 
         let lineStartIndex = 0;
         const lines = [];
-        const sp = Module.stackSave();
-        const logicalStartPtr = Module.stackAlloc(4);
-        const logicalLengthPtr = Module.stackAlloc(4);
+        const outPtr = Module._malloc(8);
+        const logicalStartPtr = outPtr;
+        const logicalLengthPtr = outPtr + 4;
 
         for (const lineBreakPoint of mergedParagraphLineBreakPoints) {
             let lineText = '';
             const runCount = bidiSetLine(lineStartIndex, lineBreakPoint);
 
             if (!runCount) {
-                Module.stackRestore(sp);
+                Module._free(outPtr);
                 Module._free(stringInputPtr);
                 return [];
             }
 
             for (let i = 0; i < runCount; i++) {
                 const isReversed = bidiGetVisualRun(i, logicalStartPtr, logicalLengthPtr);
-                const logicalStart = lineStartIndex + Module.getValue(logicalStartPtr, 'i32');
-                const logicalLength = Module.getValue(logicalLengthPtr, 'i32');
+                const logicalStart = lineStartIndex + readInt32(logicalStartPtr);
+                const logicalLength = readInt32(logicalLengthPtr);
 
                 if (isReversed) {
                     const returnStringPtr = bidiWriteReverse(stringInputPtr, logicalStart, logicalLength);
                     if (returnStringPtr === 0) {
-                        Module.stackRestore(sp);
+                        Module._free(outPtr);
                         Module._free(stringInputPtr);
                         return [];
                     }
-                    lineText += Module.UTF16ToString(returnStringPtr);
+                    lineText += readUTF16(returnStringPtr);
                     Module._free(returnStringPtr);
                 } else {
                     const chunk = input.substring(logicalStart, logicalStart + logicalLength);
@@ -137,7 +155,7 @@ export default (async function () {
             lineStartIndex = lineBreakPoint;
         }
 
-        Module.stackRestore(sp);
+        Module._free(outPtr);
         Module._free(stringInputPtr);
         return lines;
     }
@@ -171,9 +189,9 @@ export default (async function () {
         let lineStartIndex = 0;
         const lines = [];
 
-        const sp = Module.stackSave();
-        const logicalStartPtr = Module.stackAlloc(4);
-        const logicalLengthPtr = Module.stackAlloc(4);
+        const outPtr = Module._malloc(8);
+        const logicalStartPtr = outPtr;
+        const logicalLengthPtr = outPtr + 4;
 
         for (const lineBreakPoint of mergedParagraphLineBreakPoints) {
             let lineText = '';
@@ -181,7 +199,7 @@ export default (async function () {
             const runCount = bidiSetLine(lineStartIndex, lineBreakPoint);
 
             if (!runCount) {
-                Module.stackRestore(sp);
+                Module._free(outPtr);
                 Module._free(stringInputPtr);
                 return []; // TODO: throw exception?
             }
@@ -189,8 +207,8 @@ export default (async function () {
             for (let i = 0; i < runCount; i++) {
                 const isReversed = bidiGetVisualRun(i, logicalStartPtr, logicalLengthPtr);
 
-                const logicalStart = lineStartIndex + Module.getValue(logicalStartPtr, 'i32');
-                const logicalLength = Module.getValue(logicalLengthPtr, 'i32');
+                const logicalStart = lineStartIndex + readInt32(logicalStartPtr);
+                const logicalLength = readInt32(logicalLengthPtr);
                 const logicalEnd = logicalStart + logicalLength;
                 if (isReversed) {
                     // Within this reversed section, iterate logically backwards
@@ -204,11 +222,11 @@ export default (async function () {
                             const returnStringPtr = bidiWriteReverse(stringInputPtr, styleRunEnd, styleRunStart - styleRunEnd);
 
                             if (returnStringPtr === 0) {
-                                Module.stackRestore(sp);
+                                Module._free(outPtr);
                                 Module._free(stringInputPtr);
                                 return [];
                             }
-                            const reversed = Module.UTF16ToString(returnStringPtr);
+                            const reversed = readUTF16(returnStringPtr);
                             Module._free(returnStringPtr);
 
                             lineText += reversed;
@@ -230,7 +248,7 @@ export default (async function () {
             lineStartIndex = lineBreakPoint;
         }
 
-        Module.stackRestore(sp);
+        Module._free(outPtr);
         Module._free(stringInputPtr);
 
         return lines;

@@ -22,7 +22,7 @@ emcc -Oz -flto -v -o ./src/icu.wasm.js ./build/ushape_wrapper.o ./build/ubidi_wr
     -s EXPORT_ES6=1 \
     -s MALLOC=emmalloc \
     -s EXPORTED_FUNCTIONS="['_ushape_arabic','_bidi_processText','_bidi_getParagraphEndIndex','_bidi_setLine','_bidi_writeReverse','_bidi_getVisualRun','_malloc','_free']" \
-    -s EXPORTED_RUNTIME_METHODS="['stringToUTF16','UTF16ToString','cwrap','getValue','stackSave','stackRestore','stackAlloc']" \
+    -s EXPORTED_RUNTIME_METHODS="['HEAPU8']" \
     -s FILESYSTEM=0 \
     -s MODULARIZE=1 \
     -s SINGLE_FILE=1 \
