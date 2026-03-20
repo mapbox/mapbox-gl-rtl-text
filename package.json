@@ -17,7 +17,7 @@
     "build:icu": "./build_icu.sh",
     "build": "rollup -c",
     "start": "npm run build && vite --config vite.config.js .",
-    "lint": "eslint src/index.js test.js",
+    "pretest": "eslint src/index.js test.js",
     "test": "node --import ./wasm-loader.js --test"
   },
   "devDependencies": {

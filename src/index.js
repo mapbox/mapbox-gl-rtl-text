@@ -15,8 +15,9 @@ export default (async function () {
 
     instance.exports.__wasm_call_ctors();
     const mem = instance.exports.memory.buffer;
-    const HEAPU8 = new Uint8Array(mem);
-    const HEAP32 = new Int32Array(mem);
+    const HEAPU8  = new Uint8Array(mem);
+    const HEAPU16 = new Uint16Array(mem);
+    const HEAP32  = new Int32Array(mem);
 
     const {
         ushapeArabic,
@@ -32,19 +33,15 @@ export default (async function () {
     const utf16Decoder = new TextDecoder('utf-16le');
 
     function readUTF16(ptr) {
-        let end = ptr;
-        while (HEAPU8[end] || HEAPU8[end + 1]) end += 2;
-        return utf16Decoder.decode(HEAPU8.subarray(ptr, end));
+        let end = ptr >> 1;
+        while (HEAPU16[end]) end++;
+        return utf16Decoder.decode(HEAPU8.subarray(ptr, end << 1));
     }
 
     function writeUTF16(str, ptr) {
-        const buf = new Uint16Array(HEAPU8.buffer, ptr, str.length + 1);
-        for (let i = 0; i < str.length; i++) buf[i] = str.charCodeAt(i);
-        buf[str.length] = 0;
-    }
-
-    function readInt32(ptr) {
-        return HEAP32[ptr >> 2];
+        const offset = ptr >> 1;
+        for (let i = 0; i < str.length; i++) HEAPU16[offset + i] = str.charCodeAt(i);
+        HEAPU16[offset + str.length] = 0;
     }
 
     /**
@@ -135,8 +132,6 @@ export default (async function () {
         let lineStartIndex = 0;
         const lines = [];
         const outPtr = malloc(8);
-        const logicalStartPtr = outPtr;
-        const logicalLengthPtr = outPtr + 4;
 
         for (const lineBreakPoint of mergedParagraphLineBreakPoints) {
             let lineText = '';
@@ -149,9 +144,9 @@ export default (async function () {
             }
 
             for (let i = 0; i < runCount; i++) {
-                const isReversed = bidiGetVisualRun(i, logicalStartPtr, logicalLengthPtr);
-                const logicalStart = lineStartIndex + readInt32(logicalStartPtr);
-                const logicalLength = readInt32(logicalLengthPtr);
+                const isReversed = bidiGetVisualRun(i, outPtr, outPtr + 4);
+                const logicalStart = lineStartIndex + HEAP32[outPtr >> 2];
+                const logicalLength = HEAP32[(outPtr >> 2) + 1];
 
                 if (isReversed) {
                     const returnStringPtr = bidiWriteReverse(stringInputPtr, logicalStart, logicalLength);
@@ -208,8 +203,6 @@ export default (async function () {
         const lines = [];
 
         const outPtr = malloc(8);
-        const logicalStartPtr = outPtr;
-        const logicalLengthPtr = outPtr + 4;
 
         for (const lineBreakPoint of mergedParagraphLineBreakPoints) {
             let lineText = '';
@@ -223,10 +216,10 @@ export default (async function () {
             }
 
             for (let i = 0; i < runCount; i++) {
-                const isReversed = bidiGetVisualRun(i, logicalStartPtr, logicalLengthPtr);
+                const isReversed = bidiGetVisualRun(i, outPtr, outPtr + 4);
 
-                const logicalStart = lineStartIndex + readInt32(logicalStartPtr);
-                const logicalLength = readInt32(logicalLengthPtr);
+                const logicalStart = lineStartIndex + HEAP32[outPtr >> 2];
+                const logicalLength = HEAP32[(outPtr >> 2) + 1];
                 const logicalEnd = logicalStart + logicalLength;
                 if (isReversed) {
                     // Within this reversed section, iterate logically backwards
