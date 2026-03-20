@@ -83,14 +83,15 @@ export default (async function () {
      * @returns {Array<string>} One string per line, with each string in visual order
      */
     function processBidirectionalText(input, lineBreakPoints) {
-        const nDataBytes = (input.length + 1) * 2;
+        const safeInput = input ?? '';
+        const nDataBytes = (safeInput.length + 1) * 2;
         const stringInputPtr = Module._malloc(nDataBytes);
-        const paragraphCount = setParagraph(input, stringInputPtr, nDataBytes);
+        const paragraphCount = setParagraph(safeInput, stringInputPtr, nDataBytes);
         if (!paragraphCount) {
-            return [input];
+            return [safeInput];
         }
 
-        const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
+        const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints || [], paragraphCount);
 
         let lineStartIndex = 0;
         const lines = [];
@@ -155,14 +156,16 @@ export default (async function () {
      *                               Each string has a matching array of style indices in the same order.
      */
     function processStyledBidirectionalText(text, styleIndices, lineBreakPoints) {
-        const nDataBytes = (text.length + 1) * 2;
+        const safeText = text ?? '';
+        const safeStyleIndices = styleIndices || [];
+        const nDataBytes = (safeText.length + 1) * 2;
         const stringInputPtr = Module._malloc(nDataBytes);
-        const paragraphCount = setParagraph(text, stringInputPtr, nDataBytes);
+        const paragraphCount = setParagraph(safeText, stringInputPtr, nDataBytes);
         if (!paragraphCount) {
-            return [[text, styleIndices]];
+            return [[safeText, safeStyleIndices]];
         }
 
-        const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
+        const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints || [], paragraphCount);
 
         let lineStartIndex = 0;
         const lines = [];
@@ -190,9 +193,9 @@ export default (async function () {
                     // Each time we see a change in style, render a reversed chunk
                     // of everything since the last change
                     let styleRunStart = logicalEnd;
-                    let currentStyleIndex = styleIndices[styleRunStart - 1];
+                    let currentStyleIndex = safeStyleIndices[styleRunStart - 1];
                     for (let j = logicalEnd - 1; j >= logicalStart; j--) {
-                        if (currentStyleIndex !== styleIndices[j] || j === logicalStart) {
+                        if (currentStyleIndex !== safeStyleIndices[j] || j === logicalStart) {
                             const styleRunEnd = j === logicalStart ? j : j + 1;
                             const reversed = writeReverse(stringInputPtr, styleRunEnd, styleRunStart);
                             if (!reversed) {
@@ -203,14 +206,14 @@ export default (async function () {
                             for (let k = 0; k < reversed.length; k++) {
                                 lineStyleIndices.push(currentStyleIndex);
                             }
-                            currentStyleIndex = styleIndices[j];
+                            currentStyleIndex = safeStyleIndices[j];
                             styleRunStart = styleRunEnd;
                         }
                     }
 
                 } else {
-                    lineText += text.substring(logicalStart, logicalEnd);
-                    lineStyleIndices = lineStyleIndices.concat(styleIndices.slice(logicalStart, logicalEnd));
+                    lineText += safeText.substring(logicalStart, logicalEnd);
+                    lineStyleIndices = lineStyleIndices.concat(safeStyleIndices.slice(logicalStart, logicalEnd));
                 }
             }
 

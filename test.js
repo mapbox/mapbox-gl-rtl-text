@@ -73,3 +73,7 @@ test('Empty text with styled bidirectional processing', () => {
     assert.equal(result[0][0], '', 'Text should be empty string');
     assert.deepEqual(result[0][1], [], 'Style indices should be empty array');
 });
+test('Undefined text falls back to empty output', () => {
+    assert.deepEqual(processBidirectionalText(undefined, []), ['']);
+    assert.deepEqual(processStyledBidirectionalText(undefined, undefined, []), [['', []]]);
+});
