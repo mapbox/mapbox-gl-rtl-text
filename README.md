@@ -40,8 +40,7 @@ const readyForDisplay = processBidirectionalText(shapedArabicText, []);
 
 * Running `npm start` will spin up a local server to test the plugin in a browser.
 * Running `npm test` will run unit tests in `test.js`.
-* Running `npm run build:icu` will rebuild ICU WASM module:
-  - Download Emscripten SDK Docker Image
+* Running `npm run build:icu` will rebuild ICU WASM module (provided Emscripten is installed):
   - Compile `ushape_wrapper.c` and `ubidi_wrapper.c` to LLVM bytecode
   - Generate `./src/icu.wasm.js`, exposing bytecode sources as WASM module
 
