@@ -14,7 +14,9 @@ export default (async function () {
     });
 
     instance.exports.__wasm_call_ctors();
-    const HEAPU8 = new Uint8Array(instance.exports.memory.buffer);
+    const mem = instance.exports.memory.buffer;
+    const HEAPU8 = new Uint8Array(mem);
+    const HEAP32 = new Int32Array(mem);
 
     const {
         ushapeArabic,
@@ -42,7 +44,7 @@ export default (async function () {
     }
 
     function readInt32(ptr) {
-        return new Int32Array(HEAPU8.buffer, ptr, 1)[0];
+        return HEAP32[ptr >> 2];
     }
 
     /**
@@ -270,17 +272,15 @@ export default (async function () {
         return lines;
     }
 
-    if (typeof self !== 'undefined' && self.registerRTLTextPlugin) {
-        self.registerRTLTextPlugin({
-            applyArabicShaping,
-            processBidirectionalText,
-            processStyledBidirectionalText
-        });
-    }
-
-    return {
+    const rtl = {
         applyArabicShaping,
         processBidirectionalText,
         processStyledBidirectionalText
     };
+
+    if (typeof self !== 'undefined' && self.registerRTLTextPlugin) {
+        self.registerRTLTextPlugin(rtl);
+    }
+
+    return rtl;
 })();

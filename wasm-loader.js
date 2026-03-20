@@ -4,8 +4,14 @@
 //
 // We need both resolve and load hooks: Node.js 22+ has native WASM ESM support
 // that would otherwise intercept .wasm imports before our load hook runs.
+//
+// Self-registers when used as --import preload; also exports hooks for when
+// Node.js loads this file in the hooks worker context.
+import {register} from 'node:module';
 import {readFile} from 'node:fs/promises';
-import {fileURLToPath} from 'node:url';
+import {pathToFileURL, fileURLToPath} from 'node:url';
+
+register(import.meta.url, pathToFileURL('./'));
 
 const WASM_SUFFIX = '?wasm-loader';
 
