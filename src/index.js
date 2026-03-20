@@ -57,8 +57,7 @@ export default (async function () {
         if (!input)
             return input;
 
-        const nDataBytes = (input.length + 1) * 2;
-        const stringInputPtr = malloc(nDataBytes);
+        const stringInputPtr = malloc((input.length + 1) * 2);
         writeUTF16(input, stringInputPtr);
         const returnStringPtr = ushapeArabic(stringInputPtr, input.length);
         free(stringInputPtr);
@@ -73,32 +72,28 @@ export default (async function () {
     }
 
     function mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount) {
-        const mergedParagraphLineBreakPoints = [];
+        const merged = [];
 
         for (let i = 0; i < paragraphCount; i++) {
-            const paragraphEndIndex = bidiGetParagraphEnd(i);
-            // TODO: Handle error?
-
-            for (const lineBreakPoint of lineBreakPoints) {
-                if (lineBreakPoint < paragraphEndIndex &&
-                    (!mergedParagraphLineBreakPoints[mergedParagraphLineBreakPoints.length - 1] || lineBreakPoint > mergedParagraphLineBreakPoints[mergedParagraphLineBreakPoints.length - 1]))
-                    mergedParagraphLineBreakPoints.push(lineBreakPoint);
+            const paragraphEnd = bidiGetParagraphEnd(i);
+            for (const breakPoint of lineBreakPoints) {
+                if (breakPoint < paragraphEnd && (!merged.length || breakPoint > merged[merged.length - 1]))
+                    merged.push(breakPoint);
             }
-            mergedParagraphLineBreakPoints.push(paragraphEndIndex);
+            merged.push(paragraphEnd);
         }
 
-        for (const lineBreakPoint of lineBreakPoints) {
-            if (lineBreakPoint > mergedParagraphLineBreakPoints[mergedParagraphLineBreakPoints.length - 1])
-                mergedParagraphLineBreakPoints.push(lineBreakPoint);
+        for (const breakPoint of lineBreakPoints) {
+            if (breakPoint > merged[merged.length - 1])
+                merged.push(breakPoint);
         }
 
-        return mergedParagraphLineBreakPoints;
+        return merged;
     }
 
     // Returns { stringInputPtr, paragraphCount } or null (frees memory on failure)
     function allocAndSetParagraph(input) {
-        const nDataBytes = (input.length + 1) * 2;
-        const stringInputPtr = malloc(nDataBytes);
+        const stringInputPtr = malloc((input.length + 1) * 2);
         writeUTF16(input, stringInputPtr);
         const paragraphCount = bidiProcessText(stringInputPtr, input.length);
         if (paragraphCount === 0) {
@@ -132,6 +127,7 @@ export default (async function () {
         let lineStartIndex = 0;
         const lines = [];
         const outPtr = malloc(8);
+        const outIdx = outPtr >> 2;
 
         for (const lineBreakPoint of mergedParagraphLineBreakPoints) {
             let lineText = '';
@@ -145,8 +141,8 @@ export default (async function () {
 
             for (let i = 0; i < runCount; i++) {
                 const isReversed = bidiGetVisualRun(i, outPtr, outPtr + 4);
-                const logicalStart = lineStartIndex + HEAP32[outPtr >> 2];
-                const logicalLength = HEAP32[(outPtr >> 2) + 1];
+                const logicalStart = lineStartIndex + HEAP32[outIdx];
+                const logicalLength = HEAP32[outIdx + 1];
 
                 if (isReversed) {
                     const returnStringPtr = bidiWriteReverse(stringInputPtr, logicalStart, logicalLength);
@@ -203,6 +199,7 @@ export default (async function () {
         const lines = [];
 
         const outPtr = malloc(8);
+        const outIdx = outPtr >> 2;
 
         for (const lineBreakPoint of mergedParagraphLineBreakPoints) {
             let lineText = '';
@@ -218,8 +215,8 @@ export default (async function () {
             for (let i = 0; i < runCount; i++) {
                 const isReversed = bidiGetVisualRun(i, outPtr, outPtr + 4);
 
-                const logicalStart = lineStartIndex + HEAP32[outPtr >> 2];
-                const logicalLength = HEAP32[(outPtr >> 2) + 1];
+                const logicalStart = lineStartIndex + HEAP32[outIdx];
+                const logicalLength = HEAP32[outIdx + 1];
                 const logicalEnd = logicalStart + logicalLength;
                 if (isReversed) {
                     // Within this reversed section, iterate logically backwards

@@ -17,7 +17,7 @@ emcc -Oz -flto -s USE_ICU=1 -c ./src/ushape_wrapper.c -o ./build/ushape_wrapper.
 # Compile ICU wrapper to WebAssembly; src/index.js provides the glue, so discard the generated JS.
 # Use -O1 (not -Oz) to prevent Emscripten from minifying WASM import/export names, then run
 # wasm-opt -Oz separately to still get full size optimization with readable names.
-emcc -O1 -flto -v -o ./src/icu.js ./build/ushape_wrapper.o ./build/ubidi_wrapper.o \
+emcc -O1 -flto -o ./src/icu.js ./build/ushape_wrapper.o ./build/ubidi_wrapper.o \
     -s USE_ICU=1 \
     -s MALLOC=emmalloc \
     -s INITIAL_MEMORY=262144 \
