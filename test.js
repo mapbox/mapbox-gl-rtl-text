@@ -61,3 +61,15 @@ test('Line breaking with styled bidirectional text', () => {
             ['Iskandarīyah', [6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7]]]
     );
 });
+
+test('Empty text with styled bidirectional processing', () => {
+    // This reproduces the bug from maplibre-gl-js issue #6444
+    // When both name and ref are empty, the result should still be a tuple [text, styleIndices]
+    const result = processStyledBidirectionalText('', [], []);
+    assert.ok(Array.isArray(result), 'Result should be an array');
+    assert.equal(result.length, 1, 'Result should have one line');
+    assert.ok(Array.isArray(result[0]), 'First line should be a tuple (array)');
+    assert.equal(result[0].length, 2, 'Tuple should have 2 elements');
+    assert.equal(result[0][0], '', 'Text should be empty string');
+    assert.deepEqual(result[0][1], [], 'Style indices should be empty array');
+});
