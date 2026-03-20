@@ -4,12 +4,12 @@ import icu from './icu.wasm.js';
 export default (async function () {
     const Module = await icu();
 
-    const ushapeArabic         = Module.cwrap('ushape_arabic',            'number', ['number', 'number']);
-    const bidiProcessText      = Module.cwrap('bidi_processText',         'number', ['number', 'number']);
-    const bidiGetParagraphEnd  = Module.cwrap('bidi_getParagraphEndIndex','number', ['number']);
-    const bidiSetLine          = Module.cwrap('bidi_setLine',             'number', ['number', 'number']);
-    const bidiGetVisualRun     = Module.cwrap('bidi_getVisualRun',        'number', ['number', 'number', 'number']);
-    const bidiWriteReverse     = Module.cwrap('bidi_writeReverse',        'number', ['number', 'number', 'number']);
+    const ushapeArabic         = Module.cwrap('ushape_arabic',             'number', ['number', 'number']);
+    const bidiProcessText      = Module.cwrap('bidi_processText',          'number', ['number', 'number']);
+    const bidiGetParagraphEnd  = Module.cwrap('bidi_getParagraphEndIndex', 'number', ['number']);
+    const bidiSetLine          = Module.cwrap('bidi_setLine',              'number', ['number', 'number']);
+    const bidiGetVisualRun     = Module.cwrap('bidi_getVisualRun',         'number', ['number', 'number', 'number']);
+    const bidiWriteReverse     = Module.cwrap('bidi_writeReverse',         'number', ['number', 'number', 'number']);
 
     /**
      * Takes logical input and replaces Arabic characters with the "presentation form"
@@ -72,7 +72,7 @@ export default (async function () {
             Module._free(stringInputPtr);
             return null;
         }
-        return { stringInputPtr, paragraphCount };
+        return {stringInputPtr, paragraphCount};
     }
 
     const BIDI_CONTROLS_RE = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
@@ -93,7 +93,7 @@ export default (async function () {
 
         const hasBidiControls = input.search(BIDI_CONTROLS_RE) !== -1;
 
-        const { stringInputPtr, paragraphCount } = setup;
+        const {stringInputPtr, paragraphCount} = setup;
         const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
 
         let lineStartIndex = 0;
@@ -164,7 +164,7 @@ export default (async function () {
         const setup = allocAndSetParagraph(text);
         if (!setup) return [[text, styleIndices]];
 
-        const { stringInputPtr, paragraphCount } = setup;
+        const {stringInputPtr, paragraphCount} = setup;
 
         const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
 
