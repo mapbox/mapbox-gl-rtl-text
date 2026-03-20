@@ -119,7 +119,7 @@ export default (async function () {
     }
 
     function consumeInt32Ptr(ptr) {
-        const heapView = new Int32Array(Module.HEAPU8.buffer, ptr, 1);
+        const heapView = new Int32Array(Module.wasmMemory.buffer, ptr, 1);
         const result = heapView[0];
         Module._free(ptr);
         return result;
