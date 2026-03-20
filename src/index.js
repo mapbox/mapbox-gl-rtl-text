@@ -7,7 +7,6 @@ export default (async function () {
     const ushapeArabic         = Module.cwrap('ushape_arabic',            'number', ['number', 'number']);
     const bidiProcessText      = Module.cwrap('bidi_processText',         'number', ['number', 'number']);
     const bidiGetParagraphEnd  = Module.cwrap('bidi_getParagraphEndIndex','number', ['number']);
-    const bidiGetLine          = Module.cwrap('bidi_getLine',             'number', ['number', 'number']);
     const bidiSetLine          = Module.cwrap('bidi_setLine',             'number', ['number', 'number']);
     const bidiGetVisualRun     = Module.cwrap('bidi_getVisualRun',        'number', ['number', 'number', 'number']);
     const bidiWriteReverse     = Module.cwrap('bidi_writeReverse',        'number', ['number', 'number', 'number']);
@@ -63,21 +62,17 @@ export default (async function () {
         return mergedParagraphLineBreakPoints;
     }
 
-    // This function is stateful: it sets a static BiDi paragaph object
-    // on the "native" side
-    function setParagraph(input, stringInputPtr, nDataBytes) {
-        if (!input) {
-            return null;
-        }
-
+    // Returns { stringInputPtr, paragraphCount } or null (frees memory on failure)
+    function allocAndSetParagraph(input) {
+        const nDataBytes = (input.length + 1) * 2;
+        const stringInputPtr = Module._malloc(nDataBytes);
         Module.stringToUTF16(input, stringInputPtr, nDataBytes);
         const paragraphCount = bidiProcessText(stringInputPtr, input.length);
-
         if (paragraphCount === 0) {
             Module._free(stringInputPtr);
             return null;
         }
-        return paragraphCount;
+        return { stringInputPtr, paragraphCount };
     }
 
     /**
@@ -90,35 +85,61 @@ export default (async function () {
      *
      * @returns {Array<string>} One string per line, with each string in visual order
      */
-    function processBidirectionalText(input, lineBreakPoints) {
-        const nDataBytes = (input.length + 1) * 2;
-        const stringInputPtr = Module._malloc(nDataBytes);
-        const paragraphCount = setParagraph(input, stringInputPtr, nDataBytes);
-        if (!paragraphCount) {
-            return [input];
-        }
+    const BIDI_CONTROLS_RE = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
 
+    function processBidirectionalText(input, lineBreakPoints) {
+        const setup = allocAndSetParagraph(input);
+        if (!setup) return [input];
+
+        const hasBidiControls = BIDI_CONTROLS_RE.test(input);
+        BIDI_CONTROLS_RE.lastIndex = 0;
+
+        const { stringInputPtr, paragraphCount } = setup;
         const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
 
         let lineStartIndex = 0;
         const lines = [];
+        const sp = Module.stackSave();
+        const logicalStartPtr = Module.stackAlloc(4);
+        const logicalLengthPtr = Module.stackAlloc(4);
 
         for (const lineBreakPoint of mergedParagraphLineBreakPoints) {
-            const returnStringPtr = bidiGetLine(lineStartIndex, lineBreakPoint);
+            let lineText = '';
+            const runCount = bidiSetLine(lineStartIndex, lineBreakPoint);
 
-            if (returnStringPtr === 0) {
+            if (!runCount) {
+                Module.stackRestore(sp);
                 Module._free(stringInputPtr);
-                return []; // TODO: throw exception?
+                return [];
             }
 
-            lines.push(Module.UTF16ToString(returnStringPtr));
-            Module._free(returnStringPtr);
+            for (let i = 0; i < runCount; i++) {
+                const isReversed = bidiGetVisualRun(i, logicalStartPtr, logicalLengthPtr);
+                const logicalStart = lineStartIndex + Module.getValue(logicalStartPtr, 'i32');
+                const logicalLength = Module.getValue(logicalLengthPtr, 'i32');
 
+                if (isReversed) {
+                    const returnStringPtr = bidiWriteReverse(stringInputPtr, logicalStart, logicalLength);
+                    if (returnStringPtr === 0) {
+                        Module.stackRestore(sp);
+                        Module._free(stringInputPtr);
+                        return [];
+                    }
+                    lineText += Module.UTF16ToString(returnStringPtr);
+                    Module._free(returnStringPtr);
+                } else {
+                    const chunk = input.substring(logicalStart, logicalStart + logicalLength);
+                    // Strip BiDi control characters, matching UBIDI_REMOVE_BIDI_CONTROLS behavior
+                    lineText += hasBidiControls ? chunk.replace(BIDI_CONTROLS_RE, '') : chunk;
+                }
+            }
+
+            lines.push(lineText);
             lineStartIndex = lineBreakPoint;
         }
 
-        Module._free(stringInputPtr); // Input string must live until getLine calls are finished
-
+        Module.stackRestore(sp);
+        Module._free(stringInputPtr);
         return lines;
     }
 
@@ -141,12 +162,10 @@ export default (async function () {
      *                               Each string has a matching array of style indices in the same order.
      */
     function processStyledBidirectionalText(text, styleIndices, lineBreakPoints) {
-        const nDataBytes = (text.length + 1) * 2;
-        const stringInputPtr = Module._malloc(nDataBytes);
-        const paragraphCount = setParagraph(text, stringInputPtr, nDataBytes);
-        if (!paragraphCount) {
-            return [[text, styleIndices]];
-        }
+        const setup = allocAndSetParagraph(text);
+        if (!setup) return [[text, styleIndices]];
+
+        const { stringInputPtr, paragraphCount } = setup;
 
         const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
 
