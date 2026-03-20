@@ -75,6 +75,8 @@ export default (async function () {
         return { stringInputPtr, paragraphCount };
     }
 
+    const BIDI_CONTROLS_RE = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
+
     /**
      * Takes input text in logical order and applies the BiDi algorithm using the chosen
      * line break point to generate a set of lines with the characters re-arranged into
@@ -85,14 +87,11 @@ export default (async function () {
      *
      * @returns {Array<string>} One string per line, with each string in visual order
      */
-    const BIDI_CONTROLS_RE = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
-
     function processBidirectionalText(input, lineBreakPoints) {
         const setup = allocAndSetParagraph(input);
         if (!setup) return [input];
 
-        const hasBidiControls = BIDI_CONTROLS_RE.test(input);
-        BIDI_CONTROLS_RE.lastIndex = 0;
+        const hasBidiControls = input.search(BIDI_CONTROLS_RE) !== -1;
 
         const { stringInputPtr, paragraphCount } = setup;
         const mergedParagraphLineBreakPoints = mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount);
@@ -232,7 +231,7 @@ export default (async function () {
         }
 
         Module.stackRestore(sp);
-        Module._free(stringInputPtr); // Input string must live until getLine calls are finished
+        Module._free(stringInputPtr);
 
         return lines;
     }
