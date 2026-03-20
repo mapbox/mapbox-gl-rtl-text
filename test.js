@@ -62,6 +62,28 @@ test('Line breaking with styled bidirectional text', () => {
     );
 });
 
+test('Bracket mirroring in RTL text', () => {
+    // Parentheses around Arabic text: logical () should become visually () via UBIDI_DO_MIRRORING
+    // Without mirroring, reversal alone would produce ")ﺎﺒﺣﺮﻣ(" — parens on the wrong sides
+    assert.deepEqual(
+        processBidirectionalText(applyArabicShaping('(مرحبا)'), []),
+        ['(ﺎﺒﺣﺮﻣ)']
+    );
+});
+
+test('Multiple paragraphs', () => {
+    // Unicode paragraph separator (U+2029) splits into separate bidi paragraphs
+    assert.deepEqual(
+        processBidirectionalText(applyArabicShaping('مرحبا\u2029hello'), []),
+        ['\u2029ﺎﺒﺣﺮﻣ', 'hello']
+    );
+});
+
+test('Pure LTR text is unchanged', () => {
+    assert.deepEqual(processBidirectionalText('hello world', []), ['hello world']);
+    assert.deepEqual(processBidirectionalText('hello world', [5]), ['hello', ' world']);
+});
+
 test('Empty text with styled bidirectional processing', () => {
     // This reproduces the bug from maplibre-gl-js issue #6444
     // When both name and ref are empty, the result should still be a tuple [text, styleIndices]
