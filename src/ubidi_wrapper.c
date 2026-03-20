@@ -21,7 +21,7 @@ uint32_t bidiProcessText(const UChar* input, uint32_t input_length) {
     return ubidi_countParagraphs(bidiText);
 }
 
-uint32_t bidiGetParagraphEndIndex(uint32_t paragraphIndex) {
+uint32_t bidiGetParagraphEnd(uint32_t paragraphIndex) {
     UErrorCode errorCode = U_ZERO_ERROR;
     int32_t paragraphEndIndex = 0;
     ubidi_getParagraphByIndex(bidiText, paragraphIndex, NULL, &paragraphEndIndex, NULL, &errorCode);

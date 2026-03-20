@@ -19,12 +19,12 @@ export default (async function () {
     const {
         ushapeArabic,
         bidiProcessText,
-        bidiGetParagraphEndIndex: bidiGetParagraphEnd,
+        bidiGetParagraphEnd,
         bidiSetLine,
         bidiGetVisualRun,
         bidiWriteReverse,
-        malloc: _malloc,
-        free:   _free,
+        malloc,
+        free,
     } = instance.exports;
 
     const utf16Decoder = new TextDecoder('utf-16le');
@@ -59,16 +59,16 @@ export default (async function () {
             return input;
 
         const nDataBytes = (input.length + 1) * 2;
-        const stringInputPtr = _malloc(nDataBytes);
+        const stringInputPtr = malloc(nDataBytes);
         writeUTF16(input, stringInputPtr);
         const returnStringPtr = ushapeArabic(stringInputPtr, input.length);
-        _free(stringInputPtr);
+        free(stringInputPtr);
 
         if (returnStringPtr === 0)
             return input;
 
         const result = readUTF16(returnStringPtr);
-        _free(returnStringPtr);
+        free(returnStringPtr);
 
         return result;
     }
@@ -99,11 +99,11 @@ export default (async function () {
     // Returns { stringInputPtr, paragraphCount } or null (frees memory on failure)
     function allocAndSetParagraph(input) {
         const nDataBytes = (input.length + 1) * 2;
-        const stringInputPtr = _malloc(nDataBytes);
+        const stringInputPtr = malloc(nDataBytes);
         writeUTF16(input, stringInputPtr);
         const paragraphCount = bidiProcessText(stringInputPtr, input.length);
         if (paragraphCount === 0) {
-            _free(stringInputPtr);
+            free(stringInputPtr);
             return null;
         }
         return {stringInputPtr, paragraphCount};
@@ -132,7 +132,7 @@ export default (async function () {
 
         let lineStartIndex = 0;
         const lines = [];
-        const outPtr = _malloc(8);
+        const outPtr = malloc(8);
         const logicalStartPtr = outPtr;
         const logicalLengthPtr = outPtr + 4;
 
@@ -141,8 +141,8 @@ export default (async function () {
             const runCount = bidiSetLine(lineStartIndex, lineBreakPoint);
 
             if (!runCount) {
-                _free(outPtr);
-                _free(stringInputPtr);
+                free(outPtr);
+                free(stringInputPtr);
                 return [];
             }
 
@@ -154,12 +154,12 @@ export default (async function () {
                 if (isReversed) {
                     const returnStringPtr = bidiWriteReverse(stringInputPtr, logicalStart, logicalLength);
                     if (returnStringPtr === 0) {
-                        _free(outPtr);
-                        _free(stringInputPtr);
+                        free(outPtr);
+                        free(stringInputPtr);
                         return [];
                     }
                     lineText += readUTF16(returnStringPtr);
-                    _free(returnStringPtr);
+                    free(returnStringPtr);
                 } else {
                     const chunk = input.substring(logicalStart, logicalStart + logicalLength);
                     // Strip BiDi control characters, matching UBIDI_REMOVE_BIDI_CONTROLS behavior
@@ -171,8 +171,8 @@ export default (async function () {
             lineStartIndex = lineBreakPoint;
         }
 
-        _free(outPtr);
-        _free(stringInputPtr);
+        free(outPtr);
+        free(stringInputPtr);
         return lines;
     }
 
@@ -205,7 +205,7 @@ export default (async function () {
         let lineStartIndex = 0;
         const lines = [];
 
-        const outPtr = _malloc(8);
+        const outPtr = malloc(8);
         const logicalStartPtr = outPtr;
         const logicalLengthPtr = outPtr + 4;
 
@@ -215,8 +215,8 @@ export default (async function () {
             const runCount = bidiSetLine(lineStartIndex, lineBreakPoint);
 
             if (!runCount) {
-                _free(outPtr);
-                _free(stringInputPtr);
+                free(outPtr);
+                free(stringInputPtr);
                 return []; // TODO: throw exception?
             }
 
@@ -238,12 +238,12 @@ export default (async function () {
                             const returnStringPtr = bidiWriteReverse(stringInputPtr, styleRunEnd, styleRunStart - styleRunEnd);
 
                             if (returnStringPtr === 0) {
-                                _free(outPtr);
-                                _free(stringInputPtr);
+                                free(outPtr);
+                                free(stringInputPtr);
                                 return [];
                             }
                             const reversed = readUTF16(returnStringPtr);
-                            _free(returnStringPtr);
+                            free(returnStringPtr);
 
                             lineText += reversed;
                             for (let k = 0; k < reversed.length; k++) {
@@ -264,8 +264,8 @@ export default (async function () {
             lineStartIndex = lineBreakPoint;
         }
 
-        _free(outPtr);
-        _free(stringInputPtr);
+        free(outPtr);
+        free(stringInputPtr);
 
         return lines;
     }

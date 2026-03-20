@@ -20,7 +20,8 @@ emcc -Oz -flto -s USE_ICU=1 -c ./src/ushape_wrapper.c -o ./build/ushape_wrapper.
 emcc -O1 -flto -v -o ./src/icu.js ./build/ushape_wrapper.o ./build/ubidi_wrapper.o \
     -s USE_ICU=1 \
     -s MALLOC=emmalloc \
-    -s EXPORTED_FUNCTIONS="['_ushapeArabic','_bidiProcessText','_bidiGetParagraphEndIndex','_bidiSetLine','_bidiWriteReverse','_bidiGetVisualRun','_malloc','_free']" \
+    -s INITIAL_MEMORY=262144 \
+    -s EXPORTED_FUNCTIONS="['_ushapeArabic','_bidiProcessText','_bidiGetParagraphEnd','_bidiSetLine','_bidiWriteReverse','_bidiGetVisualRun','_malloc','_free']" \
     -s FILESYSTEM=0
 rm ./src/icu.js
 wasm-opt -Oz --enable-bulk-memory ./src/icu.wasm -o ./src/icu.wasm
