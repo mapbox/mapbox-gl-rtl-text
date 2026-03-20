@@ -21,20 +21,14 @@
     "test": "node --test"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-wasm": "^6.2.2",
-    "eslint": "^8.57.0",
-    "eslint-config-mourner": "^3.0.0",
-    "mapbox-gl": "^3.5.2",
-    "rollup": "^4.19.0",
-    "vite": "^5.3.4"
-  },
-  "eslintConfig": {
-    "extends": "mourner",
-    "parserOptions": {
-      "ecmaVersion": 2022
-    }
+    "eslint": "^10.0.3",
+    "eslint-config-mourner": "^4.1.0",
+    "mapbox-gl": "^3.20.0",
+    "rollup": "^4.59.0",
+    "vite": "^8.0.1"
   },
   "files": [
     "src",
