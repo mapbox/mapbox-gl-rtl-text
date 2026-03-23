@@ -9,7 +9,7 @@
     "type": "git"
   },
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": ["./src/index.js", "./dist/mapbox-gl-rtl-text.js"],
   "module": "src/index.js",
   "exports": "./dist/mapbox-gl-rtl-text.js",
   "main": "./dist/mapbox-gl-rtl-text.js",
