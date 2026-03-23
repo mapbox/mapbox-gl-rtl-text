@@ -11,7 +11,7 @@
   "type": "module",
   "sideEffects": false,
   "module": "src/index.js",
-  "exports": "./src/index.js",
+  "exports": "./dist/mapbox-gl-rtl-text.js",
   "main": "./dist/mapbox-gl-rtl-text.js",
   "scripts": {
     "build:icu": "./build_icu.sh",
@@ -23,7 +23,6 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.0",
-    "@rollup/plugin-wasm": "^6.2.2",
     "eslint": "^10.0.3",
     "eslint-config-mourner": "^4.1.0",
     "mapbox-gl": "^3.20.0",

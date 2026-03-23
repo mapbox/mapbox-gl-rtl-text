@@ -1,8 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
 
-import rtlText from './src/index.js';
-const {applyArabicShaping, processBidirectionalText, processStyledBidirectionalText} = await rtlText;
+import {applyArabicShaping, processBidirectionalText, processStyledBidirectionalText} from './src/index.js';
 
 test('applyArabicShaping', () => {
     assert.equal(
