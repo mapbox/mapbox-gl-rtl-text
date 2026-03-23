@@ -15,18 +15,17 @@
   "main": "./dist/mapbox-gl-rtl-text.js",
   "scripts": {
     "build:icu": "./build_icu.sh",
-    "build": "rollup -c",
+    "build": "terser src/index.js --compress --mangle --module -o dist/mapbox-gl-rtl-text.js",
     "start": "npm run build && vite --config vite.config.js .",
     "pretest": "eslint src/index.js test.js",
     "test": "node --import ./wasm-loader.js --test",
     "prepublishOnly": "npm test && npm run build"
   },
   "devDependencies": {
-    "@rollup/plugin-terser": "^1.0.0",
     "eslint": "^10.0.3",
     "eslint-config-mourner": "^4.1.0",
     "mapbox-gl": "^3.20.0",
-    "rollup": "^4.59.0",
+    "terser": "^5.0.0",
     "vite": "^8.0.1"
   },
   "files": [
