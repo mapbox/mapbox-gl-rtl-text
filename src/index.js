@@ -259,7 +259,3 @@ export function processStyledBidirectionalText(text, styleIndices, lineBreakPoin
 
     return lines;
 }
-
-if (typeof self !== 'undefined' && self.registerRTLTextPlugin) {
-    self.registerRTLTextPlugin({applyArabicShaping, processBidirectionalText, processStyledBidirectionalText});
-}
