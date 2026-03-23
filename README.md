@@ -52,7 +52,7 @@ npm version {patch|minor|major}
 git push --follow-tags
 
 mbx env
-VERSION=v$(node -p "require('./package.json').version")
-aws s3 cp --acl public-read --content-type application/javascript mapbox-gl-rtl-text.js s3://mapbox-gl-js/plugins/mapbox-gl-rtl-text/v$VERSION/mapbox-gl-rtl-text.js
+VERSION=$(node -p "require('./package.json').version")
+aws s3 cp --acl public-read --content-type application/javascript dist/mapbox-gl-rtl-text.js s3://mapbox-gl-js/plugins/mapbox-gl-rtl-text/v$VERSION/mapbox-gl-rtl-text.js
 mbx npm publish
 ```
