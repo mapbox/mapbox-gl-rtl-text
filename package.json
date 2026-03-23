@@ -1,6 +1,6 @@
 {
   "name": "@mapbox/mapbox-gl-rtl-text",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Add support for RTL languages to mapbox-gl-js.",
   "license": "BSD-2-Clause",
   "author": "Mapbox",
