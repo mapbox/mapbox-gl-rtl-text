@@ -28,8 +28,7 @@ mapboxgl.setRTLTextPlugin('mapbox-gl-rtl-text.js');
 
  You can use ICU JS directly:
 ```js
-import rtlText from '@mapbox/mapbox-gl-rtl-text';
-const {applyArabicShaping, processBidirectionalText} = await rtlText;
+import {applyArabicShaping, processBidirectionalText} from '@mapbox/mapbox-gl-rtl-text';
 
 const arabicString = "سلام";
 const shapedArabicText = applyArabicShaping(arabicString);
