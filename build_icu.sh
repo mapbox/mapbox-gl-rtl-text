@@ -1,10 +1,6 @@
-#!/bin/bash
+#!/bin/bash -eux
 
 # Builds WebAssembly ICU wrapper using Emscripten SDK (v5)
-
-set -x
-set -eu
-set -o pipefail
 
 export CXXFLAGS="${CFLAGS:-} -std=c++17"
 
@@ -23,7 +19,9 @@ emcc -O1 -flto -o ./dist/mapbox-gl-rtl-text.js ./build/ushape_wrapper.o ./build/
     -s INITIAL_MEMORY=262144 \
     -s EXPORTED_FUNCTIONS="['_ushapeArabic','_bidiProcessText','_bidiGetParagraphEnd','_bidiSetLine','_bidiWriteReverse','_bidiGetVisualRun','_malloc','_free']" \
     -s FILESYSTEM=0
+
 rm ./dist/mapbox-gl-rtl-text.js
+
 wasm-opt -Oz --enable-bulk-memory ./dist/mapbox-gl-rtl-text.wasm -o ./dist/mapbox-gl-rtl-text.wasm
 
 # Cleanup build directory
