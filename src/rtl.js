@@ -23,13 +23,12 @@ export async function createRTL(source) {
         const ptr = malloc(str.length * 2 + extraBytes);
         if (!ptr) throw new Error('mapbox-gl-rtl-text: out of memory');
 
-        const offset = ptr >> 1;
-        for (let i = 0; i < str.length; i++) HEAPU16[offset + i] = str.charCodeAt(i);
+        for (let i = 0; i < str.length; i++) HEAPU16[(ptr >> 1) + i] = str.charCodeAt(i);
         return ptr;
     }
 
     function readUTF16(ptr, length) {
-        return utf16Decoder.decode(HEAPU16.subarray(ptr >> 1, (ptr >> 1) + length));
+        return utf16Decoder.decode(new Uint16Array(memory.buffer, ptr, length));
     }
 
     /**
@@ -79,8 +78,8 @@ export async function createRTL(source) {
             const end = HEAP32[lineEndsIndex + i];
             const lineText = text.slice(start, end);
             if (styleIndices) {
-                const lineStyleIndices = new Array(end - start);
-                for (let j = start; j < end; j++) lineStyleIndices[j - start] = styleIndices[HEAP32[mapIndex + j]];
+                const lineStyleIndices = [];
+                for (let j = start; j < end; j++) lineStyleIndices.push(styleIndices[HEAP32[mapIndex + j]]);
                 lines.push([lineText, lineStyleIndices]);
             } else {
                 lines.push(lineText);
