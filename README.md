@@ -34,7 +34,7 @@ Mapbox GL JS v3 loads the plugin with `setRTLTextPlugin` and needs the [v0.4.0 b
 
 Building the wasm requires [Emscripten](https://emscripten.org/docs/getting_started/downloads.html), the same version as CI (`EM_VERSION` in `.github/workflows/ci.yml`) for an identical build.
 
-- `npm run build` (or `make`) builds `dist/mapbox-gl-rtl-text.wasm` from `src/*.c` when they change.
+- `npm run build` (or `make`) builds `dist/mapbox-gl-rtl-text.wasm` from `src/*.c` and the ICU files they use, which it downloads into `build/` on first run.
 - `npm test` builds if needed, then lints and runs `test.js`.
 - `npm start` serves a demo at http://localhost:5173 (needs Python 3). Pass a Mapbox token with `?access_token=...` or enter it when asked.
 

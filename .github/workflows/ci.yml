@@ -29,17 +29,11 @@ jobs:
     # the restored wasm is older than the checked-out sources, so mark it up to date for make
     - if: steps.wasm.outputs.cache-hit == 'true'
       run: touch dist/mapbox-gl-rtl-text.wasm
-    # caches emsdk together with the ICU port it builds on first use
-    - uses: actions/cache@v6
-      if: steps.wasm.outputs.cache-hit != 'true'
-      with:
-        path: emsdk
-        key: emsdk-releases-${{ env.EM_VERSION }}-${{ runner.os }}
     # installs only the toolchain, without the SDK's bundled node, so emcc uses node from PATH
     - name: Install emsdk
       if: steps.wasm.outputs.cache-hit != 'true'
       run: |
-        [ -d emsdk ] || git clone --depth 1 --branch $EM_VERSION https://github.com/emscripten-core/emsdk.git
+        git clone --depth 1 --branch $EM_VERSION https://github.com/emscripten-core/emsdk.git
         emsdk/emsdk install releases-$EM_VERSION-64bit
         emsdk/emsdk activate releases-$EM_VERSION-64bit
         echo "EM_CONFIG=$PWD/emsdk/.emscripten" >> $GITHUB_ENV
