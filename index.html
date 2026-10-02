@@ -29,8 +29,9 @@
 
     mapboxgl.accessToken = import.meta.env.MAPBOX_ACCESS_TOKEN;
 
-    // https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js
-    mapboxgl.setRTLTextPlugin('./dist/mapbox-gl-rtl-text.js', null, false);
+    // GL JS v3 expects the plugin script to call registerRTLTextPlugin, so wrap the module in one that does
+    const plugin = `import * as rtl from '${new URL('./src/index.js', location.href)}'; self.registerRTLTextPlugin(rtl);`;
+    mapboxgl.setRTLTextPlugin(URL.createObjectURL(new Blob([plugin], {type: 'text/javascript'})), null, false);
 
     const map = new mapboxgl.Map({
       container: 'map',

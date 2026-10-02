@@ -1,8 +1,6 @@
 #!/bin/bash -eux
 
-# Builds WebAssembly ICU wrapper using Emscripten SDK (v5)
-
-export CXXFLAGS="${CFLAGS:-} -std=c++17"
+# Builds WebAssembly ICU wrapper using Emscripten SDK
 
 mkdir -p build dist
 
@@ -10,19 +8,16 @@ mkdir -p build dist
 emcc -Oz -flto -s USE_ICU=1 -c ./src/ubidi_wrapper.c -o ./build/ubidi_wrapper.o
 emcc -Oz -flto -s USE_ICU=1 -c ./src/ushape_wrapper.c -o ./build/ushape_wrapper.o
 
-# Compile ICU wrapper to WebAssembly; src/index.js provides the glue, so discard the generated JS.
-# Use -O1 (not -Oz) to prevent Emscripten from minifying WASM import/export names, then run
-# wasm-opt -Oz separately to still get full size optimization with readable names.
-emcc -O1 -flto -o ./dist/mapbox-gl-rtl-text.js ./build/ushape_wrapper.o ./build/ubidi_wrapper.o \
+# Link a standalone module with no imports; src/rtl.js provides the glue.
+emcc -Oz -flto -o ./dist/mapbox-gl-rtl-text.wasm ./build/ushape_wrapper.o ./build/ubidi_wrapper.o \
     -s USE_ICU=1 \
+    -s STANDALONE_WASM \
+    --no-entry \
+    -s SUPPORT_LONGJMP=0 \
     -s MALLOC=emmalloc \
     -s INITIAL_MEMORY=262144 \
-    -s EXPORTED_FUNCTIONS="['_ushapeArabic','_bidiProcessText','_bidiGetParagraphEnd','_bidiSetLine','_bidiWriteReverse','_bidiGetVisualRun','_malloc','_free']" \
+    -s EXPORTED_FUNCTIONS="['_ushapeArabic','_bidiProcessText','_bidiGetParagraphEnd','_bidiWriteLine','_malloc','_free']" \
     -s FILESYSTEM=0
-
-rm ./dist/mapbox-gl-rtl-text.js
-
-wasm-opt -Oz --enable-bulk-memory ./dist/mapbox-gl-rtl-text.wasm -o ./dist/mapbox-gl-rtl-text.wasm
 
 # Cleanup build directory
 rm -rf build

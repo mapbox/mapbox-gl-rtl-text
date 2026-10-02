@@ -10,30 +10,29 @@
   },
   "type": "module",
   "sideEffects": [
-    "./src/index.js",
-    "./dist/mapbox-gl-rtl-text.js"
+    "./src/index.js"
   ],
-  "module": "src/index.js",
-  "exports": "./dist/mapbox-gl-rtl-text.js",
-  "main": "./dist/mapbox-gl-rtl-text.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./rtl.js": "./src/rtl.js",
+    "./mapbox-gl-rtl-text.wasm": "./dist/mapbox-gl-rtl-text.wasm"
+  },
   "scripts": {
     "build:icu": "./build_icu.sh",
-    "build": "terser src/index.js --compress --mangle --module -o dist/mapbox-gl-rtl-text.js",
-    "start": "npm run build && vite --config vite.config.js .",
-    "pretest": "eslint src/index.js test.js",
+    "start": "vite --config vite.config.js .",
+    "pretest": "eslint src/*.js test.js",
     "test": "node --import ./wasm-loader.js --test",
-    "prepublishOnly": "npm test && npm run build"
+    "prepublishOnly": "npm test"
   },
   "devDependencies": {
     "eslint": "^10.11.0",
     "eslint-config-mourner": "^5.0.1",
     "mapbox-gl": "^3.32.0",
-    "terser": "^5.51.2",
     "vite": "^8.3.2"
   },
   "files": [
-    "src",
-    "dist"
+    "src/*.js",
+    "dist/mapbox-gl-rtl-text.wasm"
   ],
   "allowScripts": {
     "fsevents@2.3.3": true

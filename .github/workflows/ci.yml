@@ -21,10 +21,3 @@ jobs:
 
     - run: npm ci
     - run: npm test
-    - run: npm run build
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: mapbox-gl-rtl-text
-        path: dist
-        retention-days: 7

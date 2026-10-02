@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert';
 
+import {readFile} from 'node:fs/promises';
+
 import {applyArabicShaping, processBidirectionalText, processStyledBidirectionalText} from './src/index.js';
+import {createRTL} from './src/rtl.js';
 
 test('applyArabicShaping', () => {
     assert.equal(
@@ -55,7 +58,7 @@ test('Line breaking with styled bidirectional text', () => {
             [5, 18, 30]
         ),
         [['ﺔﺒﺘﻜﻣ', [0, 0, 0, 0, 0]],
-            [' ‎‎ﺔﻳﺭﺪﻨﻜﺳﻹﺍ ', [2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1]],
+            [' ﺔﻳﺭﺪﻨﻜﺳﻹﺍ ', [2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1]],
             ['Maktabat al-', [2, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 6]],
             ['Iskandarīyah', [6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7]]]
     );
@@ -93,4 +96,24 @@ test('Empty text with styled bidirectional processing', () => {
     assert.equal(result[0].length, 2, 'Tuple should have 2 elements');
     assert.equal(result[0][0], '', 'Text should be empty string');
     assert.deepEqual(result[0][1], [], 'Style indices should be empty array');
+});
+
+test('Style indices follow reversed characters', () => {
+    assert.deepEqual(processStyledBidirectionalText('אבג', [0, 1, 1], []), [['גבא', [1, 1, 0]]]);
+    assert.deepEqual(processStyledBidirectionalText('אבג', [0, 0, 1], []), [['גבא', [1, 0, 0]]]);
+    assert.deepEqual(processStyledBidirectionalText('a😀ב', [0, 1, 1, 2], []), [['a😀ב', [0, 1, 1, 2]]]);
+    assert.deepEqual(processStyledBidirectionalText('ב😀(ג', [0, 1, 1, 2, 3], []), [['ג)😀ב', [3, 2, 1, 1, 0]]]);
+});
+
+test('BiDi controls are removed in both LTR and RTL runs', () => {
+    const controls = '\u061C\u200C\u200D\u200E\u200F\u202A\u202B\u202C\u202D\u202E\u2066\u2067\u2068\u2069';
+    assert.deepEqual(processBidirectionalText(`ab${controls}c`, []), ['abc']);
+    assert.deepEqual(processBidirectionalText(`אב${controls}ג`, []), ['גבא']);
+    assert.deepEqual(processStyledBidirectionalText('a\u200Eb', [0, 1, 2], []), [['ab', [0, 2]]]);
+});
+
+test('createRTL', async () => {
+    const bytes = await readFile(new URL('./dist/mapbox-gl-rtl-text.wasm', import.meta.url));
+    const rtl = await createRTL(new Response(bytes, {headers: {'Content-Type': 'application/wasm'}}));
+    assert.deepEqual(rtl.processBidirectionalText(rtl.applyArabicShaping('سلام۳۹'), []), ['۳۹ﻡﻼﺳ']);
 });
