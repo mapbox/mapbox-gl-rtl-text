@@ -19,22 +19,17 @@
   },
   "scripts": {
     "build:icu": "./build_icu.sh",
-    "start": "vite --config vite.config.js .",
+    "start": "python3 -m http.server 5173",
     "pretest": "eslint src/*.js test.js",
     "test": "node --import ./wasm-loader.js --test",
     "prepublishOnly": "npm test"
   },
   "devDependencies": {
     "eslint": "^10.11.0",
-    "eslint-config-mourner": "^5.0.1",
-    "mapbox-gl": "^3.32.0",
-    "vite": "^8.3.2"
+    "eslint-config-mourner": "^5.0.1"
   },
   "files": [
     "src/*.js",
     "dist/mapbox-gl-rtl-text.wasm"
-  ],
-  "allowScripts": {
-    "fsevents@2.3.3": true
-  }
+  ]
 }

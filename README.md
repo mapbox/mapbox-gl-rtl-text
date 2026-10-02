@@ -44,7 +44,7 @@ Mapbox GL JS v3 loads the plugin with `setRTLTextPlugin` and needs the [v0.4.0](
 
 ## Building mapbox-gl-rtl-text
 
-* Running `npm start` will spin up a local server to test the plugin in a browser.
+* Running `npm start` serves the repo at http://localhost:5173 (with Python 3) to test the plugin in a browser. The demo takes a Mapbox access token from `?access_token=...` or asks for it.
 * Running `npm test` will run unit tests in `test.js`.
 * Running `npm run build:icu` will rebuild `dist/mapbox-gl-rtl-text.wasm` from `src/ubidi_wrapper.c` and `src/ushape_wrapper.c` (provided Emscripten is installed).
 
