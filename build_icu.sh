@@ -16,7 +16,7 @@ emcc -Oz -flto -o ./dist/mapbox-gl-rtl-text.wasm ./build/ushape_wrapper.o ./buil
     -s SUPPORT_LONGJMP=0 \
     -s MALLOC=emmalloc \
     -s INITIAL_MEMORY=262144 \
-    -s EXPORTED_FUNCTIONS="['_ushapeArabic','_bidiProcessText','_bidiGetParagraphEnd','_bidiWriteLine','_malloc','_free']" \
+    -s EXPORTED_FUNCTIONS="['_ushapeArabic','_bidiProcessLines','_malloc','_free']" \
     -s FILESYSTEM=0
 
 # Cleanup build directory

@@ -10,7 +10,7 @@
  */
 export async function createRTL(source) {
     const {instance} = await WebAssembly.instantiateStreaming(source);
-    const {memory, ushapeArabic, bidiProcessText, bidiGetParagraphEnd, bidiWriteLine, malloc, free} = instance.exports;
+    const {memory, ushapeArabic, bidiProcessLines, malloc, free} = instance.exports;
     instance.exports._initialize();
 
     // the heap doesn't grow, so the views never detach
@@ -18,9 +18,9 @@ export async function createRTL(source) {
     const HEAP32 = new Int32Array(memory.buffer);
     const utf16Decoder = new TextDecoder('utf-16le');
 
-    // Allocates the input string followed by room for `extraBytes` bytes per input code unit
+    // Allocates the input string followed by room for `extraBytes` more bytes
     function allocString(str, extraBytes) {
-        const ptr = malloc(str.length * (2 + extraBytes));
+        const ptr = malloc(str.length * 2 + extraBytes);
         if (!ptr) throw new Error('mapbox-gl-rtl-text: out of memory');
 
         const offset = ptr >> 1;
@@ -44,7 +44,7 @@ export async function createRTL(source) {
     function applyArabicShaping(input) {
         if (!input) return input;
 
-        const ptr = allocString(input, 2);
+        const ptr = allocString(input, input.length * 2);
         const outPtr = ptr + input.length * 2;
         const length = ushapeArabic(ptr, input.length, outPtr);
         const result = length < 0 ? input : readUTF16(outPtr, length);
@@ -53,59 +53,39 @@ export async function createRTL(source) {
         return result;
     }
 
-    function mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount) {
-        const merged = [];
-
-        for (let i = 0; i < paragraphCount; i++) {
-            const paragraphEnd = bidiGetParagraphEnd(i);
-            for (const breakPoint of lineBreakPoints) {
-                if (breakPoint < paragraphEnd && (!merged.length || breakPoint > merged[merged.length - 1]))
-                    merged.push(breakPoint);
-            }
-            merged.push(paragraphEnd);
-        }
-
-        for (const breakPoint of lineBreakPoints) {
-            if (breakPoint > merged[merged.length - 1])
-                merged.push(breakPoint);
-        }
-
-        return merged;
-    }
-
     function processLines(input, lineBreakPoints, styleIndices) {
         if (!input) return [styleIndices ? [input, styleIndices] : input];
 
-        // input, then the visual line (at most as long as the input), then the logical index of each unit
-        const ptr = allocString(input, 6);
-        const outPtr = ptr + input.length * 2;
-        const mapIndex = (ptr + input.length * 4) >> 2;
+        // input, visual text, logical index of each visual unit, break points, line ends
+        const len = input.length;
+        const breakCount = lineBreakPoints.length;
+        const ptr = allocString(input, len * 10 + breakCount * 8);
+        const outPtr = ptr + len * 2;
+        const mapIndex = (ptr + len * 4) >> 2;
+        const breaksIndex = mapIndex + len;
+        const lineEndsIndex = breaksIndex + breakCount;
+        HEAP32.set(lineBreakPoints, breaksIndex);
 
-        const paragraphCount = bidiProcessText(ptr, input.length);
-        if (!paragraphCount) {
+        const lineCount = bidiProcessLines(ptr, len, breaksIndex << 2, breakCount, outPtr, mapIndex << 2, lineEndsIndex << 2);
+        if (lineCount <= 0) {
             free(ptr);
-            return [styleIndices ? [input, styleIndices] : input];
+            return lineCount ? [] : [styleIndices ? [input, styleIndices] : input];
         }
 
+        const text = readUTF16(outPtr, HEAP32[lineEndsIndex + lineCount - 1]);
         const lines = [];
-        let lineStartIndex = 0;
 
-        for (const lineBreakPoint of mergeParagraphLineBreakPoints(lineBreakPoints, paragraphCount)) {
-            const length = bidiWriteLine(ptr, lineStartIndex, lineBreakPoint, outPtr, mapIndex << 2);
-            if (length < 0) {
-                free(ptr);
-                return [];
-            }
-
-            const lineText = readUTF16(outPtr, length);
+        for (let i = 0, start = 0; i < lineCount; i++) {
+            const end = HEAP32[lineEndsIndex + i];
+            const lineText = text.slice(start, end);
             if (styleIndices) {
-                const lineStyleIndices = new Array(length);
-                for (let i = 0; i < length; i++) lineStyleIndices[i] = styleIndices[HEAP32[mapIndex + i]];
+                const lineStyleIndices = new Array(end - start);
+                for (let j = start; j < end; j++) lineStyleIndices[j - start] = styleIndices[HEAP32[mapIndex + j]];
                 lines.push([lineText, lineStyleIndices]);
             } else {
                 lines.push(lineText);
             }
-            lineStartIndex = lineBreakPoint;
+            start = end;
         }
 
         free(ptr);
