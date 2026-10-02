@@ -1,7 +1,7 @@
 /**
  * Instantiates the ICU WebAssembly module and returns the RTL text functions bound to it.
  *
- * @param {Response | Promise<Response>} source The `mapbox-gl-rtl-text.wasm` file, e.g. `fetch(url)`
+ * @param {Response | PromiseLike<Response>} source The `mapbox-gl-rtl-text.wasm` file, e.g. `fetch(url)`
  * @returns {Promise<{
  *     applyArabicShaping: (input: string) => string,
  *     processBidirectionalText: (input: string, lineBreakPoints: number[]) => string[],
@@ -120,7 +120,7 @@ export async function createRTL(source) {
      * @param {Array<number>} [styleIndices] Same length as input text, each entry represents the style
      *                                       of the corresponding input character.
      * @param {Array<number>} [lineBreakPoints] Each line break is an index into the input string
-     * @returns {Array<[string,Array<number>>]} One string per line, with each string in visual order.
+     * @returns {Array<[string, Array<number>]>} One string per line, with each string in visual order.
      *                               Each string has a matching array of style indices in the same order.
      */
     function processStyledBidirectionalText(input, styleIndices, lineBreakPoints) {

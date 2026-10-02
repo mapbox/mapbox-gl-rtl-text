@@ -30,6 +30,7 @@
   },
   "files": [
     "src/*.js",
+    "src/*.d.ts",
     "dist/mapbox-gl-rtl-text.wasm"
   ]
 }
