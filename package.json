@@ -18,11 +18,11 @@
     "./mapbox-gl-rtl-text.wasm": "./dist/mapbox-gl-rtl-text.wasm"
   },
   "scripts": {
-    "build:icu": "./build_icu.sh",
     "start": "python3 -m http.server 5173",
-    "pretest": "eslint src/*.js test.js",
+    "pretest": "make && eslint src/*.js test.js",
     "test": "node --import ./wasm-loader.js --test",
-    "prepublishOnly": "npm test"
+    "prepublishOnly": "npm test",
+    "build": "make"
   },
   "devDependencies": {
     "eslint": "^10.11.0",
