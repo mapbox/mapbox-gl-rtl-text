@@ -20,7 +20,7 @@
   "scripts": {
     "start": "python3 -m http.server 5173",
     "pretest": "make && eslint src/*.js test.js",
-    "test": "node --import ./wasm-loader.js --test",
+    "test": "node --import ./wasm-loader.js --test test.js",
     "prepublishOnly": "npm test",
     "build": "make"
   },

@@ -24,13 +24,13 @@ jobs:
     - uses: actions/cache@v6
       with:
         path: emsdk
-        key: emsdk-${{ env.EM_VERSION }}-${{ runner.os }}
-    # emsdk_env.sh would also put emsdk's own node first on PATH, so only add emcc
+        key: emsdk-releases-${{ env.EM_VERSION }}-${{ runner.os }}
+    # installs only the toolchain, without the SDK's bundled node, so emcc uses node from PATH
     - name: Install emsdk
       run: |
         [ -d emsdk ] || git clone --depth 1 --branch $EM_VERSION https://github.com/emscripten-core/emsdk.git
-        emsdk/emsdk install $EM_VERSION
-        emsdk/emsdk activate $EM_VERSION
+        emsdk/emsdk install releases-$EM_VERSION-64bit
+        emsdk/emsdk activate releases-$EM_VERSION-64bit
         echo "EM_CONFIG=$PWD/emsdk/.emscripten" >> $GITHUB_ENV
         echo "$PWD/emsdk/upstream/emscripten" >> $GITHUB_PATH
     - run: emcc --version
