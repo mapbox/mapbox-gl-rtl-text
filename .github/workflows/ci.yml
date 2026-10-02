@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  EM_VERSION: 6.0.10
+  EM_CACHE_FOLDER: emsdk-cache
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -17,5 +21,14 @@ jobs:
       with:
         node-version: 24
         cache: 'npm'
+    # caches emsdk together with the ICU port it builds on first use
+    - uses: actions/cache@v6
+      with:
+        path: ${{ env.EM_CACHE_FOLDER }}
+        key: emsdk-${{ env.EM_VERSION }}-${{ runner.os }}
+    - uses: emscripten-core/setup-emsdk@v16
+      with:
+        version: ${{ env.EM_VERSION }}
+        actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
     - run: npm ci
     - run: npm test
