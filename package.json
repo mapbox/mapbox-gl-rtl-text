@@ -9,7 +9,10 @@
     "type": "git"
   },
   "type": "module",
-  "sideEffects": ["./src/index.js", "./dist/mapbox-gl-rtl-text.js"],
+  "sideEffects": [
+    "./src/index.js",
+    "./dist/mapbox-gl-rtl-text.js"
+  ],
   "module": "src/index.js",
   "exports": "./dist/mapbox-gl-rtl-text.js",
   "main": "./dist/mapbox-gl-rtl-text.js",
@@ -22,14 +25,17 @@
     "prepublishOnly": "npm test && npm run build"
   },
   "devDependencies": {
-    "eslint": "^10.0.3",
-    "eslint-config-mourner": "^4.1.0",
-    "mapbox-gl": "^3.20.0",
-    "terser": "^5.0.0",
-    "vite": "^8.0.1"
+    "eslint": "^10.11.0",
+    "eslint-config-mourner": "^5.0.1",
+    "mapbox-gl": "^3.32.0",
+    "terser": "^5.51.2",
+    "vite": "^8.3.2"
   },
   "files": [
     "src",
     "dist"
-  ]
+  ],
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  }
 }
