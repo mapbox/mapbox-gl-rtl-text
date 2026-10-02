@@ -9,29 +9,28 @@
     "type": "git"
   },
   "type": "module",
-  "sideEffects": false,
-  "module": "src/index.js",
-  "exports": "./src/index.js",
-  "main": "./dist/mapbox-gl-rtl-text.js",
+  "sideEffects": [
+    "./src/index.js"
+  ],
+  "exports": {
+    ".": "./src/index.js",
+    "./rtl.js": "./src/rtl.js",
+    "./mapbox-gl-rtl-text.wasm": "./dist/mapbox-gl-rtl-text.wasm"
+  },
   "scripts": {
-    "build:icu": "./build_icu.sh",
-    "build": "rollup -c",
-    "start": "npm run build && vite --config vite.config.js .",
-    "pretest": "eslint src/index.js test.js",
-    "test": "node --import ./wasm-loader.js --test",
-    "prepublishOnly": "npm test && npm run build"
+    "start": "python3 -m http.server 5173",
+    "pretest": "make && eslint src/*.js test.js",
+    "test": "node --import ./wasm-loader.js --test test.js",
+    "prepublishOnly": "npm test",
+    "build": "make"
   },
   "devDependencies": {
-    "@rollup/plugin-terser": "^1.0.0",
-    "@rollup/plugin-wasm": "^6.2.2",
-    "eslint": "^10.0.3",
-    "eslint-config-mourner": "^4.1.0",
-    "mapbox-gl": "^3.20.0",
-    "rollup": "^4.59.0",
-    "vite": "^8.0.1"
+    "eslint": "^10.11.0",
+    "eslint-config-mourner": "^5.0.1"
   },
   "files": [
-    "src",
-    "dist"
+    "src/*.js",
+    "src/*.d.ts",
+    "dist/mapbox-gl-rtl-text.wasm"
   ]
 }
