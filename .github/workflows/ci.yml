@@ -9,7 +9,6 @@ on:
 
 env:
   EM_VERSION: 6.0.10
-  EM_CACHE_FOLDER: emsdk-cache
 
 jobs:
   test:
@@ -24,11 +23,16 @@ jobs:
     # caches emsdk together with the ICU port it builds on first use
     - uses: actions/cache@v6
       with:
-        path: ${{ env.EM_CACHE_FOLDER }}
+        path: emsdk
         key: emsdk-${{ env.EM_VERSION }}-${{ runner.os }}
-    - uses: emscripten-core/setup-emsdk@v16
-      with:
-        version: ${{ env.EM_VERSION }}
-        actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
+    # emsdk_env.sh would also put emsdk's own node first on PATH, so only add emcc
+    - name: Install emsdk
+      run: |
+        [ -d emsdk ] || git clone --depth 1 --branch $EM_VERSION https://github.com/emscripten-core/emsdk.git
+        emsdk/emsdk install $EM_VERSION
+        emsdk/emsdk activate $EM_VERSION
+        echo "EM_CONFIG=$PWD/emsdk/.emscripten" >> $GITHUB_ENV
+        echo "$PWD/emsdk/upstream/emscripten" >> $GITHUB_PATH
+    - run: emcc --version
     - run: npm ci
     - run: npm test
