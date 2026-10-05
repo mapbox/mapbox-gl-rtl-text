@@ -5,6 +5,7 @@
   <meta charset='utf-8'>
   <title>Add support for right-to-left scripts</title>
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'>
+  <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/v3.32.0/mapbox-gl.css'>
   <style>
     body {
       margin: 0;
@@ -24,22 +25,25 @@
   <div id='map'></div>
 
   <script type='module'>
-    import mapboxgl from 'mapbox-gl';
-    import 'mapbox-gl/dist/mapbox-gl.css';
+    import {Map, setAccessToken, setRTLTextPlugin} from 'https://api.mapbox.com/mapbox-gl-js/v3.32.0/esm/mapbox-gl.js';
 
-    mapboxgl.accessToken = import.meta.env.MAPBOX_ACCESS_TOKEN;
+    const token = new URLSearchParams(location.search).get('access_token') ||
+      localStorage.getItem('mapbox_access_token') ||
+      prompt('Mapbox access token (or pass ?access_token=...)');
+    if (token) localStorage.setItem('mapbox_access_token', token);
+    setAccessToken(token);
 
-    // https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js
-    mapboxgl.setRTLTextPlugin('./dist/mapbox-gl-rtl-text.js', null, false);
+    // GL JS v3 expects the plugin script to call registerRTLTextPlugin, so wrap the module in one that does
+    const plugin = `import * as rtl from '${new URL('./src/index.js', location.href)}'; self.registerRTLTextPlugin(rtl);`;
+    setRTLTextPlugin(URL.createObjectURL(new Blob([plugin], {type: 'text/javascript'})), null, false);
 
-    const map = new mapboxgl.Map({
+    new Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [44.3763, 33.2788],
       zoom: 11,
       hash: true
     });
-
   </script>
 
 </body>
