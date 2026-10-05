@@ -1,0 +1,32 @@
+name: Wasm toolchain
+description: Restores the built wasm from cache, or installs emsdk so make can build it
+
+inputs:
+  em-version:
+    default: 6.0.10
+
+runs:
+  using: composite
+  steps:
+    # the same sources and emcc version build a byte-identical wasm, so most runs can skip emsdk entirely
+    - uses: actions/cache@v6
+      id: wasm
+      with:
+        path: dist/mapbox-gl-rtl-text.wasm
+        key: wasm-${{ inputs.em-version }}-${{ hashFiles('src/*.c', 'Makefile') }}
+    # the restored wasm is older than the checked-out sources, so mark it up to date for make
+    - if: steps.wasm.outputs.cache-hit == 'true'
+      shell: bash
+      run: touch dist/mapbox-gl-rtl-text.wasm
+    # installs only the toolchain, without the SDK's bundled node, so emcc uses node from PATH
+    - name: Install emsdk
+      if: steps.wasm.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        EM_VERSION: ${{ inputs.em-version }}
+      run: |
+        git clone --depth 1 --branch $EM_VERSION https://github.com/emscripten-core/emsdk.git
+        emsdk/emsdk install releases-$EM_VERSION-64bit
+        emsdk/emsdk activate releases-$EM_VERSION-64bit
+        echo "EM_CONFIG=$PWD/emsdk/.emscripten" >> $GITHUB_ENV
+        echo "$PWD/emsdk/upstream/emscripten" >> $GITHUB_PATH
